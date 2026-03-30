@@ -7,6 +7,11 @@ export default class ZombieAxe extends BaseEnemy {
         
         this.setScale(1.6);
         this.speed = 55;
-        this.cost = 3;
+        this.cost = 2;
+        this.hp = 3;
+    }
+
+    getDeathAnimationKey() {
+        return this.lastFlipX ? 'anim_zombie_axe_side_left_death' : 'anim_zombie_axe_side_death';
     }
 }

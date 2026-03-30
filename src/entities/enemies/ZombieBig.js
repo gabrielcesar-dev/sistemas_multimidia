@@ -7,6 +7,11 @@ export default class ZombieBig extends BaseEnemy {
         
         this.setScale(2.5);
         this.speed = 20;
-        this.cost = 10;
+        this.cost = 7;
+        this.hp = 5;
+    }
+
+    getDeathAnimationKey() {
+        return this.lastFlipX ? 'anim_zombie_big_side_left_death' : 'anim_zombie_big_side_death';
     }
 }

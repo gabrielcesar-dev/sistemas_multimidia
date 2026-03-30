@@ -8,5 +8,10 @@ export default class ZombieSmall extends BaseEnemy {
         this.setScale(1.6);
         this.speed = 70;
         this.cost = 1;
+        this.hp = 2;
+    }
+
+    getDeathAnimationKey() {
+        return this.lastFlipX ? 'anim_zombie_side_left_death' : 'anim_zombie_side_death';
     }
 }

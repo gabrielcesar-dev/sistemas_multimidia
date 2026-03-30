@@ -7,12 +7,29 @@ export default class BootScene extends Phaser.Scene {
 
     preload() {
         // --- PLAYER ---
-        this.load.spritesheet(KEYS.PLAYER_IDLE, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Idle.png', {
+        this.load.spritesheet(KEYS.PLAYER_SOLDIER_IDLE, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Idle.png', {
             frameWidth: 100, frameHeight: 100
         });
-        this.load.spritesheet(KEYS.PLAYER_WALK, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Walk.png', {
+        this.load.spritesheet(KEYS.PLAYER_SOLDIER_WALK, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Walk.png', {
             frameWidth: 100, frameHeight: 100
         });
+
+        this.load.image(KEYS.PLAYER_MAIN_IDLE_UP, 'assets/Character/Main/Idle/Character_up_idle-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_IDLE_DOWN, 'assets/Character/Main/Idle/Character_down_idle-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_IDLE_SIDE, 'assets/Character/Main/Idle/Character_side_idle-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_IDLE_SIDE_LEFT, 'assets/Character/Main/Idle/Character_side-left_idle-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_RUN_UP, 'assets/Character/Main/Run/Character_up_run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_RUN_DOWN, 'assets/Character/Main/Run/Character_down_run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_RUN_SIDE, 'assets/Character/Main/Run/Character_side_run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_RUN_SIDE_LEFT, 'assets/Character/Main/Run/Character_side-left_run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_PUNCH_UP, 'assets/Character/Main/Punch/Character_up_punch-Sheet4.png');
+        this.load.image(KEYS.PLAYER_MAIN_PUNCH_DOWN, 'assets/Character/Main/Punch/Character_down_punch-Sheet4.png');
+        this.load.image(KEYS.PLAYER_MAIN_PUNCH_SIDE, 'assets/Character/Main/Punch/Character_side_punch-Sheet4.png');
+        this.load.image(KEYS.PLAYER_MAIN_PUNCH_SIDE_LEFT, 'assets/Character/Main/Punch/Character_side-left_punch-Sheet4.png');
+        this.load.image(KEYS.PLAYER_MAIN_PICKUP_UP, 'assets/Character/Main/Pick-up/Character_up_Pick-up-Sheet3.png');
+        this.load.image(KEYS.PLAYER_MAIN_PICKUP_DOWN, 'assets/Character/Main/Pick-up/Character_down_Pick-up-Sheet3.png');
+        this.load.image(KEYS.PLAYER_MAIN_PICKUP_SIDE, 'assets/Character/Main/Pick-up/Character_side_Pick-up-Sheet3.png');
+        this.load.image(KEYS.PLAYER_MAIN_PICKUP_SIDE_LEFT, 'assets/Character/Main/Pick-up/Character_side-left_Pick-up-Sheet3.png');
 
         // --- ZOMBIES ---
         // Load dynamically by rules (will create frames in create())
@@ -22,6 +39,8 @@ export default class BootScene extends Phaser.Scene {
         this.load.image(KEYS.ZOMBIE_UP_WALK, 'assets/Enemies/Zombie_Small/Zombie_Small_Up_Walk-Sheet6.png');
         this.load.image(KEYS.ZOMBIE_SIDE_IDLE, 'assets/Enemies/Zombie_Small/Zombie_Small_Side_Idle-Sheet6.png');
         this.load.image(KEYS.ZOMBIE_SIDE_WALK, 'assets/Enemies/Zombie_Small/Zombie_Small_Side_Walk-Sheet6.png');
+        this.load.image(KEYS.ZOMBIE_SIDE_DEATH, 'assets/Enemies/Zombie_Small/Zombie_Small_Side_First-Death-Sheet6.png');
+        this.load.image(KEYS.ZOMBIE_SIDE_LEFT_DEATH, 'assets/Enemies/Zombie_Small/Zombie_Small_Side-left_First-Death-Sheet6.png');
 
         this.load.image(KEYS.ZOMBIE_AXE_DOWN_IDLE, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Down_Idle-Sheet6.png');
         this.load.image(KEYS.ZOMBIE_AXE_DOWN_WALK, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Down_Walk-Sheet8.png');
@@ -29,6 +48,8 @@ export default class BootScene extends Phaser.Scene {
         this.load.image(KEYS.ZOMBIE_AXE_UP_WALK, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Up_Walk-Sheet8.png');
         this.load.image(KEYS.ZOMBIE_AXE_SIDE_IDLE, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Side_Idle-Sheet6.png');
         this.load.image(KEYS.ZOMBIE_AXE_SIDE_WALK, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Side_Walk-Sheet8.png');
+        this.load.image(KEYS.ZOMBIE_AXE_SIDE_DEATH, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Side_First-Death-Sheet6.png');
+        this.load.image(KEYS.ZOMBIE_AXE_SIDE_LEFT_DEATH, 'assets/Enemies/Zombie_Axe/Zombie_Axe_Side-left_First-Death-Sheet6.png');
 
         this.load.image(KEYS.ZOMBIE_BIG_DOWN_IDLE, 'assets/Enemies/Zombie_Big/Zombie_Big_Down_Idle-Sheet6.png');
         this.load.image(KEYS.ZOMBIE_BIG_DOWN_WALK, 'assets/Enemies/Zombie_Big/Zombie_Big_Down_Walk-Sheet8.png');
@@ -36,6 +57,8 @@ export default class BootScene extends Phaser.Scene {
         this.load.image(KEYS.ZOMBIE_BIG_UP_WALK, 'assets/Enemies/Zombie_Big/Zombie_Big_Up_Walk-Sheet8.png');
         this.load.image(KEYS.ZOMBIE_BIG_SIDE_IDLE, 'assets/Enemies/Zombie_Big/Zombie_Big_Side_Idle-Sheet6.png');
         this.load.image(KEYS.ZOMBIE_BIG_SIDE_WALK, 'assets/Enemies/Zombie_Big/Zombie_Big_Side_Walk-Sheet8.png');
+        this.load.image(KEYS.ZOMBIE_BIG_SIDE_DEATH, 'assets/Enemies/Zombie_Big/Zombie_Big_Side_First-Death-Sheet7.png');
+        this.load.image(KEYS.ZOMBIE_BIG_SIDE_LEFT_DEATH, 'assets/Enemies/Zombie_Big/Zombie_Big_Side-left_First-Death-Sheet7.png');
 
         // --- ENVIRONMENT & PROPS ---
         this.load.image(KEYS.TREE, 'assets/Objects/Nature/Green/Tree_1_Spruce_Green.png');
@@ -82,6 +105,23 @@ export default class BootScene extends Phaser.Scene {
             }
         };
 
+        parseDynamicFrames(KEYS.PLAYER_MAIN_IDLE_UP, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_IDLE_DOWN, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_IDLE_SIDE, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_IDLE_SIDE_LEFT, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_RUN_UP, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_RUN_DOWN, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_RUN_SIDE, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_RUN_SIDE_LEFT, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PUNCH_UP, 4);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PUNCH_DOWN, 4);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PUNCH_SIDE, 4);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PUNCH_SIDE_LEFT, 4);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PICKUP_UP, 3);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PICKUP_DOWN, 3);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PICKUP_SIDE, 3);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_PICKUP_SIDE_LEFT, 3);
+
         // All of these have -Sheet6 in their names as verified in the dir
         parseDynamicFrames(KEYS.ZOMBIE_DOWN_IDLE, 6);
         parseDynamicFrames(KEYS.ZOMBIE_DOWN_WALK, 6);
@@ -89,6 +129,8 @@ export default class BootScene extends Phaser.Scene {
         parseDynamicFrames(KEYS.ZOMBIE_UP_WALK, 6);
         parseDynamicFrames(KEYS.ZOMBIE_SIDE_IDLE, 6);
         parseDynamicFrames(KEYS.ZOMBIE_SIDE_WALK, 6);
+        parseDynamicFrames(KEYS.ZOMBIE_SIDE_DEATH, 6);
+        parseDynamicFrames(KEYS.ZOMBIE_SIDE_LEFT_DEATH, 6);
 
         parseDynamicFrames(KEYS.ZOMBIE_AXE_DOWN_IDLE, 6);
         parseDynamicFrames(KEYS.ZOMBIE_AXE_DOWN_WALK, 8);
@@ -96,6 +138,8 @@ export default class BootScene extends Phaser.Scene {
         parseDynamicFrames(KEYS.ZOMBIE_AXE_UP_WALK, 8);
         parseDynamicFrames(KEYS.ZOMBIE_AXE_SIDE_IDLE, 6);
         parseDynamicFrames(KEYS.ZOMBIE_AXE_SIDE_WALK, 8);
+        parseDynamicFrames(KEYS.ZOMBIE_AXE_SIDE_DEATH, 6);
+        parseDynamicFrames(KEYS.ZOMBIE_AXE_SIDE_LEFT_DEATH, 6);
 
         parseDynamicFrames(KEYS.ZOMBIE_BIG_DOWN_IDLE, 6);
         parseDynamicFrames(KEYS.ZOMBIE_BIG_DOWN_WALK, 8);
@@ -103,32 +147,60 @@ export default class BootScene extends Phaser.Scene {
         parseDynamicFrames(KEYS.ZOMBIE_BIG_UP_WALK, 8);
         parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_IDLE, 6);
         parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_WALK, 8);
+        parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_DEATH, 7);
+        parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_LEFT_DEATH, 7);
     }
 
     createAnimations() {
         // PLAYER 
-        // generateFrameNumbers automatically fetches all frames registered from load.spritesheet
+        const createPlayerAnim = (animKey, spriteKey, length, frameRate, repeat = -1) => {
+            const frames = Array.from({ length }, (_, i) => ({ key: spriteKey, frame: i }));
+            this.anims.create({
+                key: animKey,
+                frames,
+                frameRate,
+                repeat
+            });
+        };
+
         this.anims.create({
-            key: 'anim_player_idle',
-            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_IDLE),
+            key: 'anim_player_soldier_idle',
+            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_SOLDIER_IDLE),
             frameRate: 10,
             repeat: -1
         });
         this.anims.create({
-            key: 'anim_player_walk',
-            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_WALK),
+            key: 'anim_player_soldier_walk',
+            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_SOLDIER_WALK),
             frameRate: 14,
             repeat: -1
         });
 
+        createPlayerAnim('anim_player_main_idle_up', KEYS.PLAYER_MAIN_IDLE_UP, 6, 10);
+        createPlayerAnim('anim_player_main_idle_down', KEYS.PLAYER_MAIN_IDLE_DOWN, 6, 10);
+        createPlayerAnim('anim_player_main_idle_side', KEYS.PLAYER_MAIN_IDLE_SIDE, 6, 10);
+        createPlayerAnim('anim_player_main_idle_side_left', KEYS.PLAYER_MAIN_IDLE_SIDE_LEFT, 6, 10);
+        createPlayerAnim('anim_player_main_run_up', KEYS.PLAYER_MAIN_RUN_UP, 6, 14);
+        createPlayerAnim('anim_player_main_run_down', KEYS.PLAYER_MAIN_RUN_DOWN, 6, 14);
+        createPlayerAnim('anim_player_main_run_side', KEYS.PLAYER_MAIN_RUN_SIDE, 6, 14);
+        createPlayerAnim('anim_player_main_run_side_left', KEYS.PLAYER_MAIN_RUN_SIDE_LEFT, 6, 14);
+        createPlayerAnim('anim_player_main_punch_up', KEYS.PLAYER_MAIN_PUNCH_UP, 4, 14, 0);
+        createPlayerAnim('anim_player_main_punch_down', KEYS.PLAYER_MAIN_PUNCH_DOWN, 4, 14, 0);
+        createPlayerAnim('anim_player_main_punch_side', KEYS.PLAYER_MAIN_PUNCH_SIDE, 4, 14, 0);
+        createPlayerAnim('anim_player_main_punch_side_left', KEYS.PLAYER_MAIN_PUNCH_SIDE_LEFT, 4, 14, 0);
+        createPlayerAnim('anim_player_main_pickup_up', KEYS.PLAYER_MAIN_PICKUP_UP, 3, 10, 0);
+        createPlayerAnim('anim_player_main_pickup_down', KEYS.PLAYER_MAIN_PICKUP_DOWN, 3, 10, 0);
+        createPlayerAnim('anim_player_main_pickup_side', KEYS.PLAYER_MAIN_PICKUP_SIDE, 3, 10, 0);
+        createPlayerAnim('anim_player_main_pickup_side_left', KEYS.PLAYER_MAIN_PICKUP_SIDE_LEFT, 3, 10, 0);
+
         // ZOMBIES
-        const createZombieAnim = (animKey, spriteKey, length) => {
+        const createZombieAnim = (animKey, spriteKey, length, frameRate = 8, repeat = -1) => {
             const frames = Array.from({length: length}, (_, i) => ({ key: spriteKey, frame: i }));
             this.anims.create({
                 key: animKey,
                 frames: frames,
-                frameRate: 8,
-                repeat: -1
+                frameRate,
+                repeat
             });
         };
 
@@ -138,6 +210,8 @@ export default class BootScene extends Phaser.Scene {
         createZombieAnim('anim_zombie_up_walk', KEYS.ZOMBIE_UP_WALK, 6);
         createZombieAnim('anim_zombie_side_idle', KEYS.ZOMBIE_SIDE_IDLE, 6);
         createZombieAnim('anim_zombie_side_walk', KEYS.ZOMBIE_SIDE_WALK, 6);
+        createZombieAnim('anim_zombie_side_death', KEYS.ZOMBIE_SIDE_DEATH, 6, 10, 0);
+        createZombieAnim('anim_zombie_side_left_death', KEYS.ZOMBIE_SIDE_LEFT_DEATH, 6, 10, 0);
 
         createZombieAnim('anim_zombie_axe_down_idle', KEYS.ZOMBIE_AXE_DOWN_IDLE, 6);
         createZombieAnim('anim_zombie_axe_down_walk', KEYS.ZOMBIE_AXE_DOWN_WALK, 8);
@@ -145,6 +219,8 @@ export default class BootScene extends Phaser.Scene {
         createZombieAnim('anim_zombie_axe_up_walk', KEYS.ZOMBIE_AXE_UP_WALK, 8);
         createZombieAnim('anim_zombie_axe_side_idle', KEYS.ZOMBIE_AXE_SIDE_IDLE, 6);
         createZombieAnim('anim_zombie_axe_side_walk', KEYS.ZOMBIE_AXE_SIDE_WALK, 8);
+        createZombieAnim('anim_zombie_axe_side_death', KEYS.ZOMBIE_AXE_SIDE_DEATH, 6, 10, 0);
+        createZombieAnim('anim_zombie_axe_side_left_death', KEYS.ZOMBIE_AXE_SIDE_LEFT_DEATH, 6, 10, 0);
 
         createZombieAnim('anim_zombie_big_down_idle', KEYS.ZOMBIE_BIG_DOWN_IDLE, 6);
         createZombieAnim('anim_zombie_big_down_walk', KEYS.ZOMBIE_BIG_DOWN_WALK, 8);
@@ -152,5 +228,7 @@ export default class BootScene extends Phaser.Scene {
         createZombieAnim('anim_zombie_big_up_walk', KEYS.ZOMBIE_BIG_UP_WALK, 8);
         createZombieAnim('anim_zombie_big_side_idle', KEYS.ZOMBIE_BIG_SIDE_IDLE, 6);
         createZombieAnim('anim_zombie_big_side_walk', KEYS.ZOMBIE_BIG_SIDE_WALK, 8);
+        createZombieAnim('anim_zombie_big_side_death', KEYS.ZOMBIE_BIG_SIDE_DEATH, 7, 10, 0);
+        createZombieAnim('anim_zombie_big_side_left_death', KEYS.ZOMBIE_BIG_SIDE_LEFT_DEATH, 7, 10, 0);
     }
 }

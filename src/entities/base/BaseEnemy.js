@@ -5,6 +5,12 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
+        // Keep the enemy collider concentrated around the lower body so
+        // group-vs-group collision stops stacking without making them feel too bulky.
+        this.body.setSize(10, 8);
+        this.body.setOffset(3, 8);
+        this.body.updateFromGameObject();
+
         this.player = player;
         this.leader = leader;
         this.animPrefix = animPrefix;
@@ -18,6 +24,12 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
         // Two-phase boid variables
         this.nextVx = 0;
         this.nextVy = 0;
+        this.hp = 1;
+        this.isHurt = false;
+        this.hurtUntil = 0;
+        this.isDying = false;
+        this.lastMoveAxis = 'side';
+        this.lastFlipX = false;
     }
 
     computeAI(time, delta, frameCount) {
@@ -25,6 +37,11 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
         this.setDepth(this.y + this.displayHeight / 2);
 
         if (!this.player || !this.player.active) return;
+        if (this.isDying) return;
+        if (this.isHurt && time < this.hurtUntil) return;
+        if (this.isHurt && time >= this.hurtUntil) {
+            this.isHurt = false;
+        }
 
         // Phased Update (Decision making only every 2 frames)
         if (frameCount % 2 !== this.updateParity) {
@@ -156,6 +173,11 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
     
     applyAI() {
         if (!this.player || !this.player.active) return;
+        if (this.isDying) return;
+        if (this.isHurt) {
+            return;
+        }
+
         const currentSpeed = this.speed * this.speedMod;
 
         // Apply velocities smoothly using Lerp to provide inertia and heavy body weight
@@ -181,15 +203,65 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
         const vy = this.body.velocity.y;
         
         if (Math.abs(vx) > Math.abs(vy)) {
+            this.lastMoveAxis = 'side';
+            this.lastFlipX = vx < 0;
             this.play(`${this.animPrefix}_side_walk`, true);
             this.setFlipX(vx < 0);
         } else {
+            this.lastMoveAxis = vy >= 0 ? 'down' : 'up';
+            this.lastFlipX = false;
             this.setFlipX(false);
             if (vy > 0) {
                 this.play(`${this.animPrefix}_down_walk`, true);
             } else if (vy < 0) {
                 this.play(`${this.animPrefix}_up_walk`, true);
             }
+        }
+    }
+
+    getDeathAnimationKey() {
+        return null;
+    }
+
+    takeDamage(amount, sourceX, sourceY) {
+        if (!this.active || this.isDying) return;
+
+        this.hp -= amount;
+        this.isHurt = true;
+        this.hurtUntil = this.scene.time.now + 180;
+        this.setTint(0xff6b6b);
+
+        const dx = this.x - sourceX;
+        const dy = this.y - sourceY;
+        const length = Math.sqrt((dx * dx) + (dy * dy)) || 1;
+        const knockback = 140;
+
+        this.setVelocity((dx / length) * knockback, (dy / length) * knockback);
+
+        this.scene.time.delayedCall(120, () => {
+            if (this.active) {
+                this.clearTint();
+            }
+        });
+
+        if (this.hp <= 0) {
+            const deathAnimKey = this.getDeathAnimationKey();
+
+            if (!deathAnimKey) {
+                this.destroy();
+                return;
+            }
+
+            this.isDying = true;
+            this.body.enable = false;
+            this.setVelocity(0, 0);
+            this.clearTint();
+            this.play(deathAnimKey);
+            this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+                if (this.active) {
+                    this.destroy();
+                }
+            });
         }
     }
 }

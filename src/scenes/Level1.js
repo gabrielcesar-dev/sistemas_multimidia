@@ -1,5 +1,7 @@
 import { KEYS, SCENES } from '../config/constants.js';
-import Player from '../entities/Player.js';
+import { PLAYER_TYPE } from '../config/player.js';
+import PlayerMain from '../entities/PlayerMain.js';
+import PlayerSoldier from '../entities/PlayerSoldier.js';
 
 import ZombieSmall from '../entities/enemies/ZombieSmall.js';
 import ZombieAxe from '../entities/enemies/ZombieAxe.js';
@@ -47,10 +49,13 @@ export default class Level1 extends Phaser.Scene {
         groundLayer.setDepth(0);
 
         // Player at the exact center (Safe Zone explicitly 1500, 1500)
-        this.player = new Player(this, 1500, 1500);
+        this.player = PLAYER_TYPE === 'soldier'
+            ? new PlayerSoldier(this, 1500, 1500)
+            : new PlayerMain(this, 1500, 1500);
 
         // Track entities
         this.enemies = [];
+        this.enemiesGroup = this.physics.add.group();
 
         // Organic Cluster-Based Prop Spawning (Minecraft-style biome generation)
         const propGroup = this.physics.add.staticGroup();
@@ -106,6 +111,7 @@ export default class Level1 extends Phaser.Scene {
 
         // Setup Collisions dynamically using the single StaticGroup
         this.physics.add.collider(this.player, propGroup);
+        this.physics.add.collider(this.enemiesGroup, this.enemiesGroup);
 
         // Level Transition Zone (Right Edge)
         const transitionZone = this.add.zone(3100, 1600).setSize(200, 3200);
@@ -137,11 +143,16 @@ export default class Level1 extends Phaser.Scene {
             left: Phaser.Input.Keyboard.KeyCodes.A,
             right: Phaser.Input.Keyboard.KeyCodes.D
         });
+        this.actionKeys = this.input.keyboard.addKeys({
+            punch: Phaser.Input.Keyboard.KeyCodes.SPACE,
+            pickup: Phaser.Input.Keyboard.KeyCodes.E
+        });
     }
 
     update(time, delta) {
         this.frameCount++;
-        this.player.update(this.cursors, this.cursorsWASD);
+        this.player.update(this.cursors, this.cursorsWASD, this.actionKeys);
+        this.processPlayerMeleeAttack();
         
         // 1. CLEAR & POPULATE SPATIAL GRID
         this.grid.clear();
@@ -237,9 +248,9 @@ export default class Level1 extends Phaser.Scene {
             // Spawn loop: consume budget to spawn Hordes of enemies
             while (this.spawnBudget >= 1) { // 1 is cost of cheapest enemy
                 let weights = [
-                    { type: ZombieSmall, cost: 1, weight: 10 },
-                    { type: ZombieAxe, cost: 3, weight: difficulty },
-                    { type: ZombieBig, cost: 10, weight: difficulty * 0.5 }
+                    { type: ZombieSmall, cost: 1, weight: 7 },
+                    { type: ZombieAxe, cost: 2, weight: 4 + (difficulty * 1.4) },
+                    { type: ZombieBig, cost: 7, weight: 2 + difficulty }
                 ];
                 
                 const totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
@@ -302,6 +313,7 @@ export default class Level1 extends Phaser.Scene {
                 // Create Leader
                 const leaderInst = new selectedEnemyDef.type(this, sx, sy, this.player, null);
                 this.enemies.push(leaderInst);
+                this.enemiesGroup.add(leaderInst);
                 
                 // Create Followers
                 for (let i = 1; i < affordableSize; i++) {
@@ -310,7 +322,35 @@ export default class Level1 extends Phaser.Scene {
                     // Provide the leader instance to followers to bypass pathfinding computations!
                     const followerInst = new selectedEnemyDef.type(this, fx, fy, this.player, leaderInst);
                     this.enemies.push(followerInst);
+                    this.enemiesGroup.add(followerInst);
                 }
+            }
+        }
+    }
+
+    processPlayerMeleeAttack() {
+        if (!this.player.consumePunchHit || !this.player.consumePunchHit()) {
+            return;
+        }
+
+        const ranges = {
+            up: { x: 0, y: -34 },
+            down: { x: 0, y: 34 },
+            side: { x: 34, y: 0 },
+            side_left: { x: -34, y: 0 }
+        };
+        const facing = this.player.facing || 'down';
+        const offset = ranges[facing] || ranges.down;
+        const hitX = this.player.x + offset.x;
+        const hitY = this.player.y + offset.y;
+        const hitRadius = 34;
+
+        for (const enemy of this.enemies) {
+            if (!enemy.active) continue;
+
+            const distance = Phaser.Math.Distance.Between(hitX, hitY, enemy.x, enemy.y);
+            if (distance <= hitRadius) {
+                enemy.takeDamage(1, this.player.x, this.player.y);
             }
         }
     }
