@@ -103,6 +103,18 @@ export default class BootScene extends Phaser.Scene {
         this.load.image(KEYS.TREE_10_SMALL_OAK_GREEN, 'assets/Objects/Nature/Green/Tree_10_Small-oak_Green.png');
         this.load.image(KEYS.TREE_TRUNK_2_GRASS_GREEN, 'assets/Objects/Nature/Green/Tree-trunk_2_grass_Green.png');
         this.load.image(KEYS.ROCK_GRASS_GREEN, 'assets/Objects/Nature/Green/Rocks/Rock-grass.png');
+        this.load.image(KEYS.BUSH_DARK, 'assets/Objects/Nature/Dark-Green/Bush_1_Dark-Green.png');
+        this.load.image(KEYS.BUSH_2_DARK, 'assets/Objects/Nature/Dark-Green/Bush_2_Dark-Green.png');
+        this.load.image(KEYS.TREE_2_SPRUCE_SPARSE_DARK, 'assets/Objects/Nature/Dark-Green/Tree_2_Spruce-Sparse_Dark-Green.png');
+        this.load.image(KEYS.TREE_3_NORMAL_DARK, 'assets/Objects/Nature/Dark-Green/Tree_3_Normal_Dark-Green.png');
+        this.load.image(KEYS.TREE_5_BIG_DARK, 'assets/Objects/Nature/Dark-Green/Tree_5_Big_Dark-Green.png');
+        this.load.image(KEYS.TREE_6_PINE_BIG_DARK, 'assets/Objects/Nature/Dark-Green/Tree_6_Big-pine_Dark-Green.png');
+        this.load.image(KEYS.TREE_7_BIRCH_DARK, 'assets/Objects/Nature/Dark-Green/Tree_7_Birch_Dark-Green.png');
+        this.load.image(KEYS.TREE_8_BIRCH_DARK, 'assets/Objects/Nature/Dark-Green/Tree_8_Birch_Dark-Green.png');
+        this.load.image(KEYS.TREE_9_SMALL_OAK_DARK, 'assets/Objects/Nature/Dark-Green/Tree_9_Small-oak_Dark-Green.png');
+        this.load.image(KEYS.TREE_10_SMALL_OAK_DARK, 'assets/Objects/Nature/Dark-Green/Tree_10_Small-oak_Dark-Green.png');
+        this.load.image(KEYS.TREE_TRUNK_2_GRASS_DARK, 'assets/Objects/Nature/Dark-Green/Tree-trunk_2_grass_Dark-Green.png');
+        this.load.image(KEYS.ROCK_GRASS_DARK, 'assets/Objects/Nature/Dark-Green/Rocks/Rock-grass_Dark-Green.png');
     }
 
     create() {

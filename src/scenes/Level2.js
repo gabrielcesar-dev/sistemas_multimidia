@@ -2,6 +2,7 @@ import { KEYS, SCENES } from '../config/constants.js';
 import { PLAYER_TYPE } from '../config/player.js';
 import PlayerMain from '../entities/PlayerMain.js';
 import PlayerSoldier from '../entities/PlayerSoldier.js';
+import BaseProp from '../entities/base/BaseProp.js';
 
 import ZombieSmall from '../entities/enemies/ZombieSmall.js';
 import ZombieAxe from '../entities/enemies/ZombieAxe.js';
@@ -25,9 +26,9 @@ import TreeTrunk2GrassGreen from '../entities/props/TreeTrunk2GrassGreen.js';
 const WORLD_SIZE = 3000;
 const PAUSE_MENU_DEPTH = 100000;
 
-export default class Level1 extends Phaser.Scene {
+export default class Level2 extends Phaser.Scene {
     constructor() {
-        super({ key: SCENES.LEVEL1 });
+        super({ key: SCENES.LEVEL2 });
         this.isPauseMenuOpen = false;
         this.menuKeyReady = false;
     }
@@ -40,9 +41,8 @@ export default class Level1 extends Phaser.Scene {
         // World physics bounds
         this.physics.world.setBounds(0, 0, WORLD_SIZE, WORLD_SIZE);
 
-        // Pick a random biome mood for the floor
-        const biomeKeys = [KEYS.TILESET_GREEN, KEYS.TILESET_BLEAK, KEYS.TILESET_DARK];
-        const randomBiome = Phaser.Math.RND.pick(biomeKeys);
+        // Level 2 always uses a darker biome.
+        const randomBiome = KEYS.TILESET_DARK;
 
         // Floor: random biome tile each run (Roguelike variety)
         const map = this.make.tilemap({ tileWidth: 16, tileHeight: 16, width: 200, height: 200 });
@@ -69,9 +69,32 @@ export default class Level1 extends Phaser.Scene {
         const propGroup = this.physics.add.staticGroup();
 
         // Prop tiers
-        const natureProps = [Tree, Tree2SpruceSparseGreen, Tree3NormalGreen, Tree7BirchGreen, Tree8BirchGreen, Tree9SmallOakGreen, Tree10SmallOakGreen, Bush, Bush2Green];
-        const junkProps = [TreeTrunk2GrassGreen, RockGrassGreen];
-        const urbanProps = [Tree5BigGreen, Tree6PineBigGreen, Car];
+        const makeProp = (key, minScale, maxScale, isStatic = true) =>
+            (scene, x, y) => new BaseProp(scene, x, y, key, Phaser.Math.FloatBetween(minScale, maxScale), isStatic);
+
+        const natureProps = [
+            makeProp(KEYS.TREE_5_BIG_DARK, 2.1, 2.6),
+            makeProp(KEYS.TREE_6_PINE_BIG_DARK, 2.1, 2.6),
+            makeProp(KEYS.TREE_7_BIRCH_DARK, 1.9, 2.4),
+            makeProp(KEYS.TREE_8_BIRCH_DARK, 1.9, 2.4),
+            makeProp(KEYS.TREE_9_SMALL_OAK_DARK, 1.7, 2.1),
+            makeProp(KEYS.TREE_10_SMALL_OAK_DARK, 1.7, 2.1),
+            makeProp(KEYS.TREE_3_NORMAL_DARK, 1.9, 2.3),
+            makeProp(KEYS.TREE_2_SPRUCE_SPARSE_DARK, 1.9, 2.3),
+            makeProp(KEYS.BUSH_DARK, 1.5, 2.0),
+            makeProp(KEYS.BUSH_2_DARK, 1.5, 2.0)
+        ];
+        const junkProps = [
+            makeProp(KEYS.TREE_TRUNK_2_GRASS_DARK, 1.8, 2.2),
+            makeProp(KEYS.ROCK_GRASS_DARK, 1.5, 1.9),
+            makeProp(KEYS.CAR, 1.8, 2.2)
+        ];
+        const urbanProps = [
+            makeProp(KEYS.CAR, 1.9, 2.3),
+            makeProp(KEYS.CAR, 1.9, 2.3),
+            makeProp(KEYS.ROCK_GRASS_DARK, 1.5, 1.9),
+            makeProp(KEYS.TREE_5_BIG_DARK, 2.1, 2.6)
+        ];
 
         const numClusters = 110;
 
@@ -111,8 +134,8 @@ export default class Level1 extends Phaser.Scene {
                 const spawnX = Phaser.Math.Clamp(centerX + offsetX, 50, WORLD_SIZE - 50);
                 const spawnY = Phaser.Math.Clamp(centerY + offsetY, 50, WORLD_SIZE - 50);
 
-                const PropClass = Phaser.Utils.Array.GetRandom(propPool);
-                const prop = new PropClass(this, spawnX, spawnY);
+                const propFactory = Phaser.Utils.Array.GetRandom(propPool);
+                const prop = propFactory(this, spawnX, spawnY);
                 propGroup.add(prop);
             }
         }
@@ -129,8 +152,7 @@ export default class Level1 extends Phaser.Scene {
         transitionZone.body.moves = false;
         
         this.physics.add.overlap(this.player, transitionZone, () => {
-            // Restart the same scene to regenerate a new random map (Infinite Roguelike)
-            this.scene.restart();
+            this.scene.start(SCENES.LEVEL1);
         });
 
         // Camera setup

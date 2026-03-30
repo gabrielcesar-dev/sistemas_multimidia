@@ -55,7 +55,7 @@ export default class CharacterSelectScene extends Phaser.Scene {
 
         this.confirmButton = this.createActionButton('Jogar', () => {
             this.registry.set('selectedPlayerType', this.selectedType);
-            this.scene.start(SCENES.LEVEL1);
+            this.scene.start(SCENES.LEVEL_SELECT);
         });
 
         this.backButton = this.createActionButton('Voltar', () => {

@@ -96,12 +96,26 @@ export const KEYS = {
     TREE_9_SMALL_OAK_GREEN: 'tree_9_small_oak_green',
     TREE_10_SMALL_OAK_GREEN: 'tree_10_small_oak_green',
     TREE_TRUNK_2_GRASS_GREEN: 'tree_trunk_2_grass_green',
-    ROCK_GRASS_GREEN: 'rock_grass_green'
+    ROCK_GRASS_GREEN: 'rock_grass_green',
+    BUSH_DARK: 'bush_dark',
+    BUSH_2_DARK: 'bush_2_dark',
+    TREE_2_SPRUCE_SPARSE_DARK: 'tree_2_spruce_sparse_dark',
+    TREE_3_NORMAL_DARK: 'tree_3_normal_dark',
+    TREE_5_BIG_DARK: 'tree_5_big_dark',
+    TREE_6_PINE_BIG_DARK: 'tree_6_pine_big_dark',
+    TREE_7_BIRCH_DARK: 'tree_7_birch_dark',
+    TREE_8_BIRCH_DARK: 'tree_8_birch_dark',
+    TREE_9_SMALL_OAK_DARK: 'tree_9_small_oak_dark',
+    TREE_10_SMALL_OAK_DARK: 'tree_10_small_oak_dark',
+    TREE_TRUNK_2_GRASS_DARK: 'tree_trunk_2_grass_dark',
+    ROCK_GRASS_DARK: 'rock_grass_dark'
 };
 
 export const SCENES = {
     BOOT: 'BootScene',
     MENU: 'MenuScene',
     CHARACTER_SELECT: 'CharacterSelectScene',
-    LEVEL1: 'Level1'
+    LEVEL_SELECT: 'LevelSelectScene',
+    LEVEL1: 'Level1',
+    LEVEL2: 'Level2'
 };
