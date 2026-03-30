@@ -1,4 +1,5 @@
 import { KEYS, SCENES } from '../config/constants.js';
+import { PLAYER_TYPE } from '../config/player.js';
 
 export default class BootScene extends Phaser.Scene {
     constructor() {
@@ -98,6 +99,7 @@ export default class BootScene extends Phaser.Scene {
     create() {
         this.processDynamicSpritesheets();
         this.createAnimations();
+        this.registry.set('selectedPlayerType', this.registry.get('selectedPlayerType') || PLAYER_TYPE);
 
         this.scene.start(SCENES.MENU);
     }

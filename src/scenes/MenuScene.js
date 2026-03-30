@@ -44,7 +44,7 @@ export default class MenuScene extends Phaser.Scene {
 
         const buttons = [
             this.createMenuButton(KEYS.UI_MENU_PLAY, KEYS.UI_MENU_PLAY_PRESSED, 'Jogar', () => {
-                this.scene.start(SCENES.LEVEL1);
+                this.scene.start(SCENES.CHARACTER_SELECT);
             }),
             this.createMenuButton(KEYS.UI_MENU_LOAD, KEYS.UI_MENU_LOAD_PRESSED, 'Load', () => {
                 statusText.setText('Load ainda nao foi implementado');

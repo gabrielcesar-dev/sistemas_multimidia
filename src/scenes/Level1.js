@@ -51,7 +51,8 @@ export default class Level1 extends Phaser.Scene {
         groundLayer.setDepth(0);
 
         // Player at the exact center (Safe Zone explicitly 1500, 1500)
-        this.player = PLAYER_TYPE === 'soldier'
+        const selectedPlayerType = this.registry.get('selectedPlayerType') || PLAYER_TYPE;
+        this.player = selectedPlayerType === 'soldier'
             ? new PlayerSoldier(this, 1500, 1500)
             : new PlayerMain(this, 1500, 1500);
 

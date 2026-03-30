@@ -99,5 +99,6 @@ export const KEYS = {
 export const SCENES = {
     BOOT: 'BootScene',
     MENU: 'MenuScene',
+    CHARACTER_SELECT: 'CharacterSelectScene',
     LEVEL1: 'Level1'
 };
