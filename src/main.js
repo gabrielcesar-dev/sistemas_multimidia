@@ -1,4 +1,5 @@
 import BootScene from './scenes/BootScene.js';
+import MenuScene from './scenes/MenuScene.js';
 import Level1 from './scenes/Level1.js';
 
 const config = {
@@ -15,7 +16,7 @@ const config = {
             debug: true
         }
     },
-    scene: [BootScene, Level1]
+    scene: [BootScene, MenuScene, Level1]
 };
 
 const game = new Phaser.Game(config);

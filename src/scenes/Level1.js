@@ -23,10 +23,12 @@ import Tree10SmallOakGreen from '../entities/props/Tree10SmallOakGreen.js';
 import TreeTrunk2GrassGreen from '../entities/props/TreeTrunk2GrassGreen.js';
 
 const WORLD_SIZE = 3000;
+const PAUSE_MENU_DEPTH = 100000;
 
 export default class Level1 extends Phaser.Scene {
     constructor() {
         super({ key: SCENES.LEVEL1 });
+        this.isPauseMenuOpen = false;
     }
 
     create() {
@@ -147,9 +149,29 @@ export default class Level1 extends Phaser.Scene {
             punch: Phaser.Input.Keyboard.KeyCodes.SPACE,
             pickup: Phaser.Input.Keyboard.KeyCodes.E
         });
+        this.menuKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+
+        this.createPauseMenu();
+        this.scale.on('resize', this.updatePauseMenuLayout, this);
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.scale.off('resize', this.updatePauseMenuLayout, this);
+        });
     }
 
     update(time, delta) {
+        if (Phaser.Input.Keyboard.JustDown(this.menuKey)) {
+            if (this.isPauseMenuOpen) {
+                this.closePauseMenu();
+            } else {
+                this.openPauseMenu();
+            }
+            return;
+        }
+
+        if (this.isPauseMenuOpen) {
+            return;
+        }
+
         this.frameCount++;
         this.player.update(this.cursors, this.cursorsWASD, this.actionKeys);
         this.processPlayerMeleeAttack();
@@ -353,5 +375,125 @@ export default class Level1 extends Phaser.Scene {
                 enemy.takeDamage(1, this.player.x, this.player.y);
             }
         }
+    }
+
+    createPauseMenu() {
+        this.pauseOverlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x000000, 0.68)
+            .setOrigin(0)
+            .setScrollFactor(0)
+            .setDepth(PAUSE_MENU_DEPTH)
+            .setVisible(false);
+
+        this.pausePanel = this.add.rectangle(0, 0, 320, 220, 0x1c1814, 0.96)
+            .setStrokeStyle(3, 0xc2a36a, 1)
+            .setScrollFactor(0)
+            .setDepth(PAUSE_MENU_DEPTH + 1)
+            .setVisible(false);
+
+        this.pauseTitle = this.add.text(0, 0, 'Pausado', {
+            fontFamily: 'Georgia',
+            fontSize: '28px',
+            color: '#f2e7c9',
+            stroke: '#000000',
+            strokeThickness: 4
+        })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(PAUSE_MENU_DEPTH + 2)
+            .setVisible(false);
+
+        this.continueButton = this.createPauseButton('Continuar', () => {
+            this.closePauseMenu();
+        });
+
+        this.backToMenuButton = this.createPauseButton('Voltar ao inicio', () => {
+            this.physics.world.resume();
+            this.scene.start(SCENES.MENU);
+        });
+
+        this.updatePauseMenuLayout({ width: this.scale.width, height: this.scale.height });
+    }
+
+    createPauseButton(label, onClick) {
+        const buttonBg = this.add.rectangle(0, 0, 210, 44, 0x4b3924, 1)
+            .setStrokeStyle(2, 0xd7b47b, 1)
+            .setScrollFactor(0)
+            .setDepth(PAUSE_MENU_DEPTH + 2)
+            .setVisible(false)
+            .setInteractive({ useHandCursor: true });
+
+        const buttonText = this.add.text(0, 0, label, {
+            fontFamily: 'Georgia',
+            fontSize: '18px',
+            color: '#fff4dd'
+        })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(PAUSE_MENU_DEPTH + 3)
+            .setVisible(false);
+
+        buttonBg.on('pointerover', () => {
+            buttonBg.setFillStyle(0x6a5030, 1);
+        });
+
+        buttonBg.on('pointerout', () => {
+            buttonBg.setFillStyle(0x4b3924, 1);
+        });
+
+        buttonBg.on('pointerdown', () => {
+            buttonBg.setFillStyle(0x8a6942, 1);
+        });
+
+        buttonBg.on('pointerup', () => {
+            buttonBg.setFillStyle(0x6a5030, 1);
+            onClick();
+        });
+
+        return { buttonBg, buttonText };
+    }
+
+    openPauseMenu() {
+        this.isPauseMenuOpen = true;
+        this.physics.world.pause();
+        this.player.setVelocity(0, 0);
+
+        this.pauseOverlay.setVisible(true);
+        this.pausePanel.setVisible(true);
+        this.pauseTitle.setVisible(true);
+        this.continueButton.buttonBg.setVisible(true);
+        this.continueButton.buttonText.setVisible(true);
+        this.backToMenuButton.buttonBg.setVisible(true);
+        this.backToMenuButton.buttonText.setVisible(true);
+    }
+
+    closePauseMenu() {
+        this.isPauseMenuOpen = false;
+        this.physics.world.resume();
+
+        this.pauseOverlay.setVisible(false);
+        this.pausePanel.setVisible(false);
+        this.pauseTitle.setVisible(false);
+        this.continueButton.buttonBg.setVisible(false);
+        this.continueButton.buttonText.setVisible(false);
+        this.backToMenuButton.buttonBg.setVisible(false);
+        this.backToMenuButton.buttonText.setVisible(false);
+    }
+
+    updatePauseMenuLayout(gameSize) {
+        const width = gameSize.width;
+        const height = gameSize.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        if (!this.pauseOverlay) return;
+
+        this.pauseOverlay.setSize(width, height);
+        this.pausePanel.setPosition(centerX, centerY);
+        this.pauseTitle.setPosition(centerX, centerY - 55);
+
+        this.continueButton.buttonBg.setPosition(centerX, centerY + 5);
+        this.continueButton.buttonText.setPosition(centerX, centerY + 5);
+        this.backToMenuButton.buttonBg.setPosition(centerX, centerY + 65);
+        this.backToMenuButton.buttonText.setPosition(centerX, centerY + 65);
     }
 }

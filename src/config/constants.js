@@ -41,6 +41,17 @@ export const KEYS = {
     ZOMBIE_BIG_SIDE_WALK: 'zombie_big_side_walk',
     ZOMBIE_BIG_SIDE_DEATH: 'zombie_big_side_death',
     ZOMBIE_BIG_SIDE_LEFT_DEATH: 'zombie_big_side_left_death',
+    UI_MENU_PLAY: 'ui_menu_play',
+    UI_MENU_PLAY_PRESSED: 'ui_menu_play_pressed',
+    UI_MENU_LOAD: 'ui_menu_load',
+    UI_MENU_LOAD_PRESSED: 'ui_menu_load_pressed',
+    UI_MENU_SETTINGS: 'ui_menu_settings',
+    UI_MENU_SETTINGS_PRESSED: 'ui_menu_settings_pressed',
+    UI_MENU_QUIT: 'ui_menu_quit',
+    UI_MENU_QUIT_PRESSED: 'ui_menu_quit_pressed',
+    UI_MENU_BLANK: 'ui_menu_blank',
+    UI_MENU_BLANK_PRESSED: 'ui_menu_blank_pressed',
+    UI_MENU_CURSOR: 'ui_menu_cursor',
     TREE: 'tree',
     GRASS: 'grass',
     TILESET_GREEN: 'tileset_green',
@@ -87,5 +98,6 @@ export const KEYS = {
 
 export const SCENES = {
     BOOT: 'BootScene',
+    MENU: 'MenuScene',
     LEVEL1: 'Level1'
 };

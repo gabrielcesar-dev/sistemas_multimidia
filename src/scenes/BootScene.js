@@ -31,6 +31,19 @@ export default class BootScene extends Phaser.Scene {
         this.load.image(KEYS.PLAYER_MAIN_PICKUP_SIDE, 'assets/Character/Main/Pick-up/Character_side_Pick-up-Sheet3.png');
         this.load.image(KEYS.PLAYER_MAIN_PICKUP_SIDE_LEFT, 'assets/Character/Main/Pick-up/Character_side-left_Pick-up-Sheet3.png');
 
+        // --- MENU UI ---
+        this.load.image(KEYS.UI_MENU_PLAY, 'assets/UI/Menu/Main Menu/Play_Not-Pressed.png');
+        this.load.image(KEYS.UI_MENU_PLAY_PRESSED, 'assets/UI/Menu/Main Menu/Play_Pressed.png');
+        this.load.image(KEYS.UI_MENU_LOAD, 'assets/UI/Menu/Main Menu/Load_Not-Pressed.png');
+        this.load.image(KEYS.UI_MENU_LOAD_PRESSED, 'assets/UI/Menu/Main Menu/Load_Pressed.png');
+        this.load.image(KEYS.UI_MENU_SETTINGS, 'assets/UI/Menu/Main Menu/Settings_Not-Pressed.png');
+        this.load.image(KEYS.UI_MENU_SETTINGS_PRESSED, 'assets/UI/Menu/Main Menu/Settings_Pressed.png');
+        this.load.image(KEYS.UI_MENU_QUIT, 'assets/UI/Menu/Main Menu/Quit_Not-Pressed.png');
+        this.load.image(KEYS.UI_MENU_QUIT_PRESSED, 'assets/UI/Menu/Main Menu/Quit_Pressed.png');
+        this.load.image(KEYS.UI_MENU_BLANK, 'assets/UI/Menu/Main Menu/Blank_Not-Pressed.png');
+        this.load.image(KEYS.UI_MENU_BLANK_PRESSED, 'assets/UI/Menu/Main Menu/Blank_Pressed.png');
+        this.load.image(KEYS.UI_MENU_CURSOR, 'assets/UI/Menu/Cursor.png');
+
         // --- ZOMBIES ---
         // Load dynamically by rules (will create frames in create())
         this.load.image(KEYS.ZOMBIE_DOWN_IDLE, 'assets/Enemies/Zombie_Small/Zombie_Small_Down_Idle-Sheet6.png');
@@ -86,7 +99,7 @@ export default class BootScene extends Phaser.Scene {
         this.processDynamicSpritesheets();
         this.createAnimations();
 
-        this.scene.start(SCENES.LEVEL1);
+        this.scene.start(SCENES.MENU);
     }
 
     processDynamicSpritesheets() {
