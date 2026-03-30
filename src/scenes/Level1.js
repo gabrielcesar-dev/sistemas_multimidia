@@ -32,6 +32,8 @@ export default class Level1 extends Phaser.Scene {
     }
 
     create() {
+        this.isPauseMenuOpen = false;
+
         // World physics bounds
         this.physics.world.setBounds(0, 0, WORLD_SIZE, WORLD_SIZE);
 
@@ -355,18 +357,12 @@ export default class Level1 extends Phaser.Scene {
         if (!this.player.consumePunchHit || !this.player.consumePunchHit()) {
             return;
         }
-
-        const ranges = {
-            up: { x: 0, y: -34 },
-            down: { x: 0, y: 34 },
-            side: { x: 34, y: 0 },
-            side_left: { x: -34, y: 0 }
-        };
-        const facing = this.player.facing || 'down';
-        const offset = ranges[facing] || ranges.down;
-        const hitX = this.player.x + offset.x;
-        const hitY = this.player.y + offset.y;
-        const hitRadius = 34;
+        const attackArea = this.player.getMeleeAttackArea
+            ? this.player.getMeleeAttackArea()
+            : { x: this.player.x, y: this.player.y + 34, radius: 34 };
+        const hitX = attackArea.x;
+        const hitY = attackArea.y;
+        const hitRadius = attackArea.radius;
 
         for (const enemy of this.enemies) {
             if (!enemy.active) continue;
@@ -408,7 +404,7 @@ export default class Level1 extends Phaser.Scene {
         });
 
         this.backToMenuButton = this.createPauseButton('Voltar ao inicio', () => {
-            this.physics.world.resume();
+            this.closePauseMenu();
             this.scene.start(SCENES.MENU);
         });
 

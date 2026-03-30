@@ -128,4 +128,20 @@ export default class PlayerMain extends Phaser.Physics.Arcade.Sprite {
         this.pendingPunchHit = false;
         return true;
     }
+
+    getMeleeAttackArea() {
+        const ranges = {
+            up: { x: 0, y: -34 },
+            down: { x: 0, y: 34 },
+            side: { x: 34, y: 0 },
+            side_left: { x: -34, y: 0 }
+        };
+        const offset = ranges[this.facing] || ranges.down;
+
+        return {
+            x: this.x + offset.x,
+            y: this.y + offset.y,
+            radius: 34
+        };
+    }
 }
