@@ -1,6 +1,9 @@
 export const KEYS = {
     PLAYER_SOLDIER_IDLE: 'player_soldier_idle',
     PLAYER_SOLDIER_WALK: 'player_soldier_walk',
+    PLAYER_SOLDIER_ATTACK_1: 'player_soldier_attack_1',
+    PLAYER_SOLDIER_HURT: 'player_soldier_hurt',
+    PLAYER_SOLDIER_DEATH: 'player_soldier_death',
     PLAYER_MAIN_IDLE_UP: 'player_main_idle_up',
     PLAYER_MAIN_IDLE_DOWN: 'player_main_idle_down',
     PLAYER_MAIN_IDLE_SIDE: 'player_main_idle_side',

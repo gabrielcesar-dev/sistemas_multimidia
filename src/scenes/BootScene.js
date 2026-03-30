@@ -14,6 +14,15 @@ export default class BootScene extends Phaser.Scene {
         this.load.spritesheet(KEYS.PLAYER_SOLDIER_WALK, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Walk.png', {
             frameWidth: 100, frameHeight: 100
         });
+        this.load.spritesheet(KEYS.PLAYER_SOLDIER_ATTACK_1, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Attack01.png', {
+            frameWidth: 100, frameHeight: 100
+        });
+        this.load.spritesheet(KEYS.PLAYER_SOLDIER_HURT, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Hurt.png', {
+            frameWidth: 100, frameHeight: 100
+        });
+        this.load.spritesheet(KEYS.PLAYER_SOLDIER_DEATH, 'assets/Character/Soldier_100x100/Soldier with shadows/Soldier-Death.png', {
+            frameWidth: 100, frameHeight: 100
+        });
 
         this.load.image(KEYS.PLAYER_MAIN_IDLE_UP, 'assets/Character/Main/Idle/Character_up_idle-Sheet6.png');
         this.load.image(KEYS.PLAYER_MAIN_IDLE_DOWN, 'assets/Character/Main/Idle/Character_down_idle-Sheet6.png');
@@ -189,6 +198,24 @@ export default class BootScene extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers(KEYS.PLAYER_SOLDIER_WALK),
             frameRate: 14,
             repeat: -1
+        });
+        this.anims.create({
+            key: 'anim_player_soldier_attack',
+            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_SOLDIER_ATTACK_1),
+            frameRate: 14,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'anim_player_soldier_hurt',
+            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_SOLDIER_HURT),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'anim_player_soldier_death',
+            frames: this.anims.generateFrameNumbers(KEYS.PLAYER_SOLDIER_DEATH),
+            frameRate: 10,
+            repeat: 0
         });
 
         createPlayerAnim('anim_player_main_idle_up', KEYS.PLAYER_MAIN_IDLE_UP, 6, 10);
