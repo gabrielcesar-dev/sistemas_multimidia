@@ -6,6 +6,7 @@ import PlayerSoldier from '../entities/PlayerSoldier.js';
 import ZombieSmall from '../entities/enemies/ZombieSmall.js';
 import ZombieAxe from '../entities/enemies/ZombieAxe.js';
 import ZombieBig from '../entities/enemies/ZombieBig.js';
+import Shotgun from '../entities/props/Shotgun.js';
 import Tree from '../entities/props/Tree.js';
 import Bush from '../entities/props/Bush.js';
 import Car from '../entities/props/Car.js';
@@ -30,11 +31,16 @@ export default class Level1 extends Phaser.Scene {
         super({ key: SCENES.LEVEL1 });
         this.isPauseMenuOpen = false;
         this.menuKeyReady = false;
+        // NOVO: controle do menu de informações (B)
+        this.isInfoMenuOpen = false;
+        this.infoMenuKeyReady = false;
     }
 
     create() {
         this.isPauseMenuOpen = false;
         this.menuKeyReady = false;
+        this.isInfoMenuOpen = false;
+        this.infoMenuKeyReady = false;
         this.killCount = 0;
 
         // World physics bounds
@@ -64,6 +70,8 @@ export default class Level1 extends Phaser.Scene {
         // Track entities
         this.enemies = [];
         this.enemiesGroup = this.physics.add.group();
+        this.shotguns = this.physics.add.group();
+
 
         // Organic Cluster-Based Prop Spawning (Minecraft-style biome generation)
         const propGroup = this.physics.add.staticGroup();
@@ -121,6 +129,14 @@ export default class Level1 extends Phaser.Scene {
         this.physics.add.collider(this.player, propGroup);
         this.physics.add.collider(this.enemiesGroup, this.enemiesGroup);
         this.physics.add.overlap(this.player, this.enemiesGroup, this.handlePlayerEnemyOverlap, null, this);
+        
+        // Shotgun pickups
+        this.physics.add.overlap(this.player, this.shotguns, this.handleShotgunPickup, null, this);
+
+        // Event listeners for enemy death and shotgun firing
+        this.events.on('enemyDeath', this.spawnShotgun, this);
+        this.events.on('shotgunFired', this.handleShotgunFire, this);
+
 
         // Level Transition Zone (Right Edge)
         const transitionZone = this.add.zone(3100, 1600).setSize(200, 3200);
@@ -157,26 +173,37 @@ export default class Level1 extends Phaser.Scene {
             pickup: Phaser.Input.Keyboard.KeyCodes.E
         });
         this.menuKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-
-        this.createHpHud();
-        this.createKillHud();
+        // NOVO: tecla B para abrir menu de informações
+        this.infoKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        
+        this.createGameHud();
+        this.scale.on('resize', this.updateGameHudLayout, this);
+        
         this.createPauseMenu();
-        this.scale.on('resize', this.updateHpHudLayout, this);
-        this.scale.on('resize', this.updateKillHudLayout, this);
         this.scale.on('resize', this.updatePauseMenuLayout, this);
+        
+        // NOVO: criação do menu de informações
+        this.createInfoMenu();
+        this.scale.on('resize', this.updateInfoMenuLayout, this);
+        
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            this.scale.off('resize', this.updateHpHudLayout, this);
-            this.scale.off('resize', this.updateKillHudLayout, this);
+            this.scale.off('resize', this.updateGameHudLayout, this);
             this.scale.off('resize', this.updatePauseMenuLayout, this);
+            this.scale.off('resize', this.updateInfoMenuLayout, this);
         });
     }
 
     update(time, delta) {
+        // --- Lógica de prontidão para a tecla ESC ---
         if (!this.menuKeyReady) {
             if (this.menuKey.isUp) {
                 this.menuKeyReady = true;
             }
         } else if (Phaser.Input.Keyboard.JustDown(this.menuKey)) {
+            // Se o menu de info estiver aberto, fecha ele antes de abrir o pause
+            if (this.isInfoMenuOpen) {
+                this.closeInfoMenu();
+            }
             if (this.isPauseMenuOpen) {
                 this.closePauseMenu();
             } else {
@@ -184,15 +211,34 @@ export default class Level1 extends Phaser.Scene {
             }
             return;
         }
-
-        if (this.isPauseMenuOpen) {
+        
+        // --- Lógica de prontidão para a tecla B (menu de informações) ---
+        if (!this.infoMenuKeyReady) {
+            if (this.infoKey.isUp) {
+                this.infoMenuKeyReady = true;
+            }
+        } else if (Phaser.Input.Keyboard.JustDown(this.infoKey)) {
+            // Se o pause estiver aberto, fecha ele antes de abrir o info
+            if (this.isPauseMenuOpen) {
+                this.closePauseMenu();
+            }
+            if (this.isInfoMenuOpen) {
+                this.closeInfoMenu();
+            } else {
+                this.openInfoMenu();
+            }
+            return;
+        }
+        
+        // Se qualquer menu estiver aberto, não atualiza o jogo
+        if (this.isPauseMenuOpen || this.isInfoMenuOpen) {
             return;
         }
 
         this.frameCount++;
         this.player.update(this.cursors, this.cursorsWASD, this.actionKeys);
         this.processPlayerMeleeAttack();
-        this.updateHpHud();
+        this.updateGameHud();
         
         // 1. CLEAR & POPULATE SPATIAL GRID
         this.grid.clear();
@@ -395,92 +441,131 @@ export default class Level1 extends Phaser.Scene {
         }
 
         if (player.takeDamage(1)) {
-            this.updateHpHud();
+            this.updateGameHud();
         }
     }
 
-    createHpHud() {
-        const hudDepth = PAUSE_MENU_DEPTH - 10;
-        this.hpHudPanel = this.add.rectangle(16, this.scale.height - 70, 280, 46, 0x000000, 0.55)
+    handleShotgunPickup(player, shotgun) {
+        shotgun.pickup(player);
+        this.updateGameHud();
+    }
+
+    spawnShotgun(x, y) {
+        const shotgun = new Shotgun(this, x, y);
+        this.shotguns.add(shotgun);
+    }
+
+    handleShotgunFire(bullets, facing) {
+        // bullets is an array of 5 bullet spread positions
+        // Each bullet checks for enemies in its path
+        
+        const bulletRadius = 20; // Collision radius for each bullet
+        const hitEnemies = new Set(); // Track to avoid damaging same enemy twice per shot
+
+        bullets.forEach(bullet => {
+            this.enemiesGroup.children.entries.forEach(enemy => {
+                if (!enemy.active || enemy.isDying || hitEnemies.has(enemy)) return;
+
+                // Check distance from bullet to enemy
+                const dx = enemy.x - bullet.x;
+                const dy = enemy.y - bullet.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < bulletRadius + 15) {
+                    hitEnemies.add(enemy);
+                    enemy.takeDamage(1, bullet.x, bullet.y);
+                }
+            });
+        });
+    }
+
+    createGameHud() {
+        const depth =  0;
+
+        // Painel (igual ao pause, mas horizontal no topo)
+        this.hudPanel = this.add.rectangle(0, 0, this.scale.width, 60, 0x1c1814, 0.9)
             .setOrigin(0, 0)
             .setScrollFactor(0)
-            .setDepth(hudDepth);
+            .setDepth(depth);
 
-        this.hpHudText = this.add.text(28, this.scale.height - 62, '', {
+        this.hudPanel.setStrokeStyle(2, 0xc2a36a, 1);
+
+        // Vida
+        this.hpText = this.add.text(20, 18, '', {
             fontFamily: 'Georgia',
-            fontSize: '28px',
+            fontSize: '20px',
             color: '#ff6b6b',
             stroke: '#000000',
-            strokeThickness: 5
+            strokeThickness: 4
         })
-            .setOrigin(0, 0)
             .setScrollFactor(0)
-            .setDepth(hudDepth + 1);
+            .setDepth(depth + 1);
 
-        this.updateHpHud();
-    }
-
-    updateHpHud() {
-        if (!this.hpHudText) return;
-
-        const heartCount = Math.ceil(this.player.maxHp / 2);
-        let hearts = '';
-
-        for (let index = 0; index < heartCount; index++) {
-            const hpForHeart = this.player.hp - (index * 2);
-
-            if (hpForHeart >= 2) {
-                hearts += '♥ ';
-            } else if (hpForHeart === 1) {
-                hearts += '♡ ';
-            } else {
-                hearts += '· ';
-            }
-        }
-
-        this.hpHudText.setText(`Vida ${hearts.trim()}`);
-    }
-
-    updateHpHudLayout(gameSize) {
-        if (!this.hpHudPanel || !this.hpHudText) return;
-
-        this.hpHudPanel.setPosition(16, gameSize.height - 70);
-        this.hpHudText.setPosition(28, gameSize.height - 62);
-    }
-
-    createKillHud() {
-        const hudDepth = PAUSE_MENU_DEPTH - 10;
-        this.killHudPanel = this.add.rectangle(this.scale.width - 220, 16, 204, 40, 0x000000, 0.55)
-            .setOrigin(0, 0)
-            .setScrollFactor(0)
-            .setDepth(hudDepth);
-
-        this.killCounterText = this.add.text(this.scale.width - 208, 24, 'Mortos: 0', {
+        // Kill count
+        this.killText = this.add.text(this.scale.width - 180, 18, '', {
             fontFamily: 'Georgia',
-            fontSize: '22px',
+            fontSize: '20px',
             color: '#f7ead0',
             stroke: '#000000',
             strokeThickness: 4
         })
-            .setOrigin(0, 0)
             .setScrollFactor(0)
-            .setDepth(hudDepth + 1);
+            .setDepth(depth + 1);
+
+        // Ammo count
+        this.ammoText = this.add.text(this.scale.width - 360, 18, '', {
+            fontFamily: 'Georgia',
+            fontSize: '20px',
+            color: '#ffaa00',
+            stroke: '#000000',
+            strokeThickness: 4
+        })
+            .setScrollFactor(0)
+            .setDepth(depth + 1);
+
+        this.updateGameHud();
     }
+    
+    updateGameHud() {
+        if (!this.hpText || !this.killText) return;
+        // VIDA (mesma lógica que você já tinha)
+        const heartCount = Math.ceil(this.player.maxHp / 2);
+        let hearts = '';
 
-    updateKillHudLayout(gameSize) {
-        if (!this.killHudPanel || !this.killCounterText) return;
+        for (let i = 0; i < heartCount; i++) {
+            const hp = this.player.hp - (i * 2);
 
-        this.killHudPanel.setPosition(gameSize.width - 220, 16);
-        this.killCounterText.setPosition(gameSize.width - 208, 24);
+            if (hp >= 2) hearts += '1';
+            else if (hp === 1) hearts += '0';
+            else hearts += '· ';
+        }
+
+        this.hpText.setText(`Vida: ${hearts.trim()}`);
+        this.killText.setText(`Mortos: ${this.killCount}`);
+        
+        // Ammo display
+        if (this.player.weapon === 'shotgun') {
+            this.ammoText.setText(`Munição: ${this.player.ammo}`);
+        } else {
+            this.ammoText.setText('');
+        }
+    }
+    
+    updateGameHudLayout(gameSize) {
+        if (!this.hudPanel) return;
+
+        this.hudPanel.setSize(gameSize.width, 60);
+
+        this.hpText.setPosition(20, 18);
+        this.killText.setPosition(gameSize.width - 180, 18);
     }
 
     registerEnemyKill() {
         this.killCount += 1;
-        if (this.killCounterText) {
-            this.killCounterText.setText(`Mortos: ${this.killCount}`);
-        }
+        this.updateGameHud();
     }
 
+    // --- MENU DE PAUSA (ESC) ---
     createPauseMenu() {
         this.pauseOverlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x000000, 0.68)
             .setOrigin(0)
@@ -599,5 +684,122 @@ export default class Level1 extends Phaser.Scene {
         this.continueButton.buttonText.setPosition(centerX, centerY + 5);
         this.backToMenuButton.buttonBg.setPosition(centerX, centerY + 65);
         this.backToMenuButton.buttonText.setPosition(centerX, centerY + 65);
+    }
+
+    // --- NOVO: MENU DE INFORMAÇÕES (B) ---
+    createInfoMenu() {
+        const depth = PAUSE_MENU_DEPTH; // mesma profundidade do pause
+
+        // Overlay escuro igual ao pause
+        this.infoOverlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x000000, 0.68)
+            .setOrigin(0)
+            .setScrollFactor(0)
+            .setDepth(depth)
+            .setVisible(false);
+
+        // Painel central
+        this.infoPanel = this.add.rectangle(0, 0, 320, 220, 0x1c1814, 0.96)
+            .setStrokeStyle(3, 0xc2a36a, 1)
+            .setScrollFactor(0)
+            .setDepth(depth + 1)
+            .setVisible(false);
+
+        // Título
+        this.infoTitle = this.add.text(0, 0, 'Informações', {
+            fontFamily: 'Georgia',
+            fontSize: '26px',
+            color: '#f2e7c9',
+            stroke: '#000000',
+            strokeThickness: 4
+        })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(depth + 2)
+            .setVisible(false);
+
+        // Texto de vida
+        this.infoHealthText = this.add.text(0, 0, '', {
+            fontFamily: 'Georgia',
+            fontSize: '20px',
+            color: '#ff6b6b',
+            stroke: '#000000',
+            strokeThickness: 3
+        })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(depth + 2)
+            .setVisible(false);
+
+        // Texto de kill count
+        this.infoKillText = this.add.text(0, 0, '', {
+            fontFamily: 'Georgia',
+            fontSize: '20px',
+            color: '#f7ead0',
+            stroke: '#000000',
+            strokeThickness: 3
+        })
+            .setOrigin(0.5)
+            .setScrollFactor(0)
+            .setDepth(depth + 2)
+            .setVisible(false);
+
+        this.updateInfoMenuLayout({ width: this.scale.width, height: this.scale.height });
+    }
+
+    openInfoMenu() {
+        this.isInfoMenuOpen = true;
+        this.physics.world.pause();
+        this.player.setVelocity(0, 0);
+
+        // Atualiza os textos com os valores atuais
+        this.updateInfoMenuTexts();
+
+        this.infoOverlay.setVisible(true);
+        this.infoPanel.setVisible(true);
+        this.infoTitle.setVisible(true);
+        this.infoHealthText.setVisible(true);
+        this.infoKillText.setVisible(true);
+    }
+
+    closeInfoMenu() {
+        this.isInfoMenuOpen = false;
+        this.physics.world.resume();
+
+        this.infoOverlay.setVisible(false);
+        this.infoPanel.setVisible(false);
+        this.infoTitle.setVisible(false);
+        this.infoHealthText.setVisible(false);
+        this.infoKillText.setVisible(false);
+    }
+
+    updateInfoMenuTexts() {
+        // Formata vida igual ao HUD
+        const heartCount = Math.ceil(this.player.maxHp / 2);
+        let hearts = '';
+        for (let i = 0; i < heartCount; i++) {
+            const hp = this.player.hp - (i * 2);
+            if (hp >= 2) hearts += '♥︎';
+            else if (hp === 1) hearts += '♡';
+            else hearts += '· ';
+        }
+        this.infoHealthText.setText(`Vida: ${hearts.trim()}`);
+        this.infoKillText.setText(`Mortos: ${this.killCount}`);
+    }
+
+    updateInfoMenuLayout(gameSize) {
+        const width = gameSize.width;
+        const height = gameSize.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        if (!this.infoOverlay) return;
+
+        this.infoOverlay.setSize(width, height);
+        this.infoPanel.setPosition(centerX, centerY);
+        this.infoTitle.setPosition(centerX, centerY - 60);
+
+        // Posiciona os textos um abaixo do outro
+        this.infoHealthText.setPosition(centerX, centerY + 10);
+        this.infoKillText.setPosition(centerX, centerY + 50);
     }
 }

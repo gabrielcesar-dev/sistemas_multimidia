@@ -16,7 +16,7 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 0 },
-            debug: true
+            debug: false,
         }
     },
     scene: [BootScene, MenuScene, CharacterSelectScene, LevelSelectScene, Level1, Level2]

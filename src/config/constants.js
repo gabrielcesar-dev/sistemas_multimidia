@@ -108,7 +108,19 @@ export const KEYS = {
     TREE_9_SMALL_OAK_DARK: 'tree_9_small_oak_dark',
     TREE_10_SMALL_OAK_DARK: 'tree_10_small_oak_dark',
     TREE_TRUNK_2_GRASS_DARK: 'tree_trunk_2_grass_dark',
-    ROCK_GRASS_DARK: 'rock_grass_dark'
+    ROCK_GRASS_DARK: 'rock_grass_dark',
+    PLAYER_MAIN_SHOTGUN_IDLE_UP: 'player_main_shotgun_idle_up',
+    PLAYER_MAIN_SHOTGUN_IDLE_DOWN: 'player_main_shotgun_idle_down',
+    PLAYER_MAIN_SHOTGUN_IDLE_SIDE: 'player_main_shotgun_idle_side',
+    PLAYER_MAIN_SHOTGUN_IDLE_SIDE_LEFT: 'player_main_shotgun_idle_side_left',
+    PLAYER_MAIN_SHOTGUN_RUN_UP: 'player_main_shotgun_run_up',
+    PLAYER_MAIN_SHOTGUN_RUN_DOWN: 'player_main_shotgun_run_down',
+    PLAYER_MAIN_SHOTGUN_RUN_SIDE: 'player_main_shotgun_run_side',
+    PLAYER_MAIN_SHOTGUN_RUN_SIDE_LEFT: 'player_main_shotgun_run_side_left',
+    PLAYER_MAIN_SHOTGUN_SHOOT_UP: 'player_main_shotgun_shoot_up',
+    PLAYER_MAIN_SHOTGUN_SHOOT_DOWN: 'player_main_shotgun_shoot_down',
+    PLAYER_MAIN_SHOTGUN_SHOOT_SIDE: 'player_main_shotgun_shoot_side',
+    PLAYER_MAIN_SHOTGUN_SHOOT_SIDE_LEFT: 'player_main_shotgun_shoot_side_left'
 };
 
 export const SCENES = {
