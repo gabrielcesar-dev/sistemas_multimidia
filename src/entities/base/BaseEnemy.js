@@ -248,6 +248,10 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
             const deathAnimKey = this.getDeathAnimationKey();
 
             if (!deathAnimKey) {
+                // Drop shotgun with chance
+                if (Math.random() < 0.3) { // 30% chance to drop shotgun
+                    this.scene.events.emit('enemyDeath', this.x, this.y);
+                }
                 this.destroy();
                 return;
             }
@@ -259,6 +263,10 @@ export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
             this.play(deathAnimKey);
             this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
                 if (this.active) {
+                    // Drop shotgun with chance
+                    if (Math.random() < 0.3) { // 30% chance to drop shotgun
+                        this.scene.events.emit('enemyDeath', this.x, this.y);
+                    }
                     this.destroy();
                 }
             });

@@ -115,6 +115,19 @@ export default class BootScene extends Phaser.Scene {
         this.load.image(KEYS.TREE_10_SMALL_OAK_DARK, 'assets/Objects/Nature/Dark-Green/Tree_10_Small-oak_Dark-Green.png');
         this.load.image(KEYS.TREE_TRUNK_2_GRASS_DARK, 'assets/Objects/Nature/Dark-Green/Tree-trunk_2_grass_Dark-Green.png');
         this.load.image(KEYS.ROCK_GRASS_DARK, 'assets/Objects/Nature/Dark-Green/Rocks/Rock-grass_Dark-Green.png');
+
+        // --- SHOTGUN ---
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_DOWN, 'assets/Character/Guns/Shotgun/Shotgun_down_idle-and-run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE, 'assets/Character/Guns/Shotgun/Shotgun_side_idle-and-run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE_LEFT, 'assets/Character/Guns/Shotgun/Shotgun_side-left_idle-and-run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_UP, 'assets/Character/Guns/Shotgun/Shotgun_up_idle-and-run-Sheet6.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_DOWN, 'assets/Character/Guns/Shotgun/Shotgun_down_shoot-Sheet3.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_SIDE, 'assets/Character/Guns/Shotgun/Shotgun_side_shoot-Sheet3.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_SIDE_LEFT, 'assets/Character/Guns/Shotgun/Shotgun_side-left_shoot-Sheet3.png');
+        this.load.image(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_UP, 'assets/Character/Guns/Shotgun/Shotgun_up_shoot-Sheet3.png');
+        
+        // Shotgun drop icon (using a simple colored circle)
+        this.make.graphics({ x: 0, y: 0, add: false }).fillStyle(0xff8800).fillCircle(10, 10, 10).generateTexture('shotgun_drop', 20, 20);
     }
 
     create() {
@@ -185,6 +198,16 @@ export default class BootScene extends Phaser.Scene {
         parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_WALK, 8);
         parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_DEATH, 7);
         parseDynamicFrames(KEYS.ZOMBIE_BIG_SIDE_LEFT_DEATH, 7);
+
+        // Shotgun animations
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_DOWN, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE_LEFT, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_IDLE_UP, 6);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_DOWN, 3);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_SIDE, 3);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_SIDE_LEFT, 3);
+        parseDynamicFrames(KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_UP, 3);
     }
 
     createAnimations() {
@@ -284,5 +307,19 @@ export default class BootScene extends Phaser.Scene {
         createZombieAnim('anim_zombie_big_side_walk', KEYS.ZOMBIE_BIG_SIDE_WALK, 8);
         createZombieAnim('anim_zombie_big_side_death', KEYS.ZOMBIE_BIG_SIDE_DEATH, 7, 10, 0);
         createZombieAnim('anim_zombie_big_side_left_death', KEYS.ZOMBIE_BIG_SIDE_LEFT_DEATH, 7, 10, 0);
+
+        // SHOTGUN
+        createPlayerAnim('anim_player_main_shotgun_idle_up', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_UP, 6, 10);
+        createPlayerAnim('anim_player_main_shotgun_idle_down', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_DOWN, 6, 10);
+        createPlayerAnim('anim_player_main_shotgun_idle_side', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE, 6, 10);
+        createPlayerAnim('anim_player_main_shotgun_idle_side_left', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE_LEFT, 6, 10);
+        createPlayerAnim('anim_player_main_shotgun_run_up', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_UP, 6, 14);
+        createPlayerAnim('anim_player_main_shotgun_run_down', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_DOWN, 6, 14);
+        createPlayerAnim('anim_player_main_shotgun_run_side', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE, 6, 14);
+        createPlayerAnim('anim_player_main_shotgun_run_side_left', KEYS.PLAYER_MAIN_SHOTGUN_IDLE_SIDE_LEFT, 6, 14);
+        createPlayerAnim('anim_player_main_shotgun_shoot_up', KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_UP, 3, 14, 0);
+        createPlayerAnim('anim_player_main_shotgun_shoot_down', KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_DOWN, 3, 14, 0);
+        createPlayerAnim('anim_player_main_shotgun_shoot_side', KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_SIDE, 3, 14, 0);
+        createPlayerAnim('anim_player_main_shotgun_shoot_side_left', KEYS.PLAYER_MAIN_SHOTGUN_SHOOT_SIDE_LEFT, 3, 14, 0);
     }
 }
