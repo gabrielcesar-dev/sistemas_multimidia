@@ -1,29 +1,14 @@
 import { KEYS } from '../config/constants.js';
+import PlayerBase from './PlayerBase.js';
 
-export default class PlayerMain extends Phaser.Physics.Arcade.Sprite {
+export default class PlayerMain extends PlayerBase {
     constructor(scene, x, y) {
-        super(scene, x, y, KEYS.PLAYER_MAIN_IDLE_DOWN);
-
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
-
-        this.setScale(2);
-
-        // The new main character frames are small (13x16 per frame),
-        // so keep the body centered near the feet instead of reusing the old soldier offsets.
-        this.body.setSize(6, 5);
-        this.body.setOffset(3.5, 11);
-        this.body.updateFromGameObject();
-
-        this.setCollideWorldBounds(true);
-
-        this.facing = 'down';
-        this.currentAction = null;
-        this.pendingPunchHit = false;
-
-        // HP System
-        this.maxHp = 10;
-        this.hp = this.maxHp;
+        super(scene, x, y, KEYS.PLAYER_MAIN_IDLE_DOWN, {
+            scale: 2,
+            bodySize: { width: 6, height: 5 },
+            bodyOffset: { x: 3.5, y: 11 },
+            maxHp: 10
+        });
 
         // Weapon system
         this.weapon = null; // 'shotgun' or null
@@ -31,12 +16,14 @@ export default class PlayerMain extends Phaser.Physics.Arcade.Sprite {
         this.canShoot = true;
         this.shotgunOverlay = null;
 
-        this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.handleAnimationComplete, this);
-
+        // Ensure correct animation playback
         this.play(this.getAnimationKey('idle'));
     }
 
     handleAnimationComplete(animation) {
+        // Allow subclasses to handle death anims: if death animation completed do nothing
+        if (animation.key.startsWith('anim_player_main_death')) return;
+
         if (!animation.key.startsWith('anim_player_main_punch') && 
             !animation.key.startsWith('anim_player_main_pickup')) {
             return;
@@ -47,6 +34,13 @@ export default class PlayerMain extends Phaser.Physics.Arcade.Sprite {
     }
 
     getAnimationKey(state) {
+        // Death has only side variants: map facing accordingly.
+        if (state === 'death') {
+            if (this.facing === 'side_left') return 'anim_player_main_death_side_left';
+            // fallback to side for side/up/down
+            return 'anim_player_main_death_side';
+        }
+
         // Always use base player animations - weapons don't change sprite
         return `anim_player_main_${state}_${this.facing}`;
     }
@@ -282,19 +276,21 @@ export default class PlayerMain extends Phaser.Physics.Arcade.Sprite {
     }
 
     takeDamage(amount) {
-        this.hp = Math.max(0, this.hp - amount);
-        if (this.hp <= 0) {
-            this.handleDeath();
-            return false;
-        }
-        return true;
+        const remaining = this.damage(amount);
+        return remaining > 0;
     }
 
     handleDeath() {
+        // Block further actions
+        this.currentAction = 'dead';
         this.setVelocity(0, 0);
-        this.play(this.getAnimationKey('death'));
-        this.scene.time.delayedCall(1000, () => {
-            this.scene.scene.restart();
-        });
+        this.removeShotgunOverlay();
+
+        // Play mapped death animation
+        const deathAnim = this.getAnimationKey('death');
+        if (deathAnim) this.play(deathAnim, true);
+
+        // Restart after animation (1000ms fallback)
+        this.scene.time.delayedCall(1000, () => this.scene.scene.restart());
     }
 }

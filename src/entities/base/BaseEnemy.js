@@ -1,4 +1,5 @@
-export default class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
+export default class 
+BaseEnemy extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, textureKey, player, leader, animPrefix) {
         super(scene, x, y, textureKey);
 
