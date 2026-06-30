@@ -8,7 +8,7 @@ export default class ZombieAxe extends BaseEnemy {
         this.setScale(1.6);
         this.speed = 55;
         this.cost = 2;
-        this.hp = 3;
+        this.setupHealth(3);
     }
 
     getDeathAnimationKey() {

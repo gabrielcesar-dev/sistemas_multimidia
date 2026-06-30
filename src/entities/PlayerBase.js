@@ -1,11 +1,12 @@
+ 
+import BaseEntity from './base/BaseEntity.js';
 import Health from '../components/Health.js';
 
-export default class PlayerBase extends Phaser.Physics.Arcade.Sprite {
+export default class PlayerBase extends BaseEntity {
+    #health;
+
     constructor(scene, x, y, textureKey, options = {}) {
         super(scene, x, y, textureKey);
-
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
 
         this.setScale(options.scale || 1);
 
@@ -26,43 +27,73 @@ export default class PlayerBase extends Phaser.Physics.Arcade.Sprite {
         this.facing = 'down';
         this.currentAction = null;
         this.pendingPunchHit = false;
+        this.isInvincible = false;
 
-        // Health component
-        this.health = new Health(options.maxHp || 10);
-        this.health.onDeath(() => this._handleDeath());
+        // Health component via composition
+        this.#health = this.addComponent('health', new Health(options.maxHp || 10));
+        
+        // Emitting events for UI/Scene decoupling - REPASSA PARA A CENA PARA A HUD LER
+        this.#health.on('damage', (amount, currentHp) => this.scene.events.emit('hpChanged', currentHp));
+        this.#health.on('heal', (amount, currentHp) => this.scene.events.emit('hpChanged', currentHp));
+        this.#health.on('death', () => this._handleDeath());
 
         // Allow subclasses to react to animation complete
         this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.handleAnimationComplete, this);
     }
 
-    // Placeholder — subclasses should override if they need specific behaviour
-    handleAnimationComplete(/* animation */) {}
+    handleAnimationComplete() {}
 
     _handleDeath() {
-        // Default behavior: stop movement. Subclasses should override handleDeath.
         this.setVelocity(0, 0);
+        this.emit('died'); // Let the scene know!
+        
         if (typeof this.handleDeath === 'function') this.handleDeath();
     }
 
-    damage(amount) {
-        return this.health.damage(amount);
+    takeDamage(amount) {
+        if (this.#health.isDead || this.isInvincible) return false;
+        
+        const previousHp = this.#health.hp;
+        this.#health.damage(amount);
+        
+        if (previousHp > this.#health.hp) {
+            // Efeito de invencibilidade + Animação de dano (piscar em vermelho)
+            this.isInvincible = true;
+            this.setTint(0xff0000);
+            
+            // Piscar a transparência
+            this.scene.tweens.add({
+                targets: this,
+                alpha: 0.3,
+                duration: 100,
+                yoyo: true,
+                repeat: 2
+            });
+
+            this.scene.time.delayedCall(600, () => {
+                this.isInvincible = false;
+                this.clearTint();
+                this.setAlpha(1);
+            });
+            return true;
+        }
+        return false;
     }
 
     heal(amount) {
-        return this.health.heal(amount);
+        return this.#health.heal(amount);
     }
 
-    isDead() {
-        return this.health.isDead();
+    get isDead() {
+        return this.#health.isDead;
     }
 
-    // Backwards-compatible properties used by scenes
     get hp() {
-        return this.health.getHp();
+        return this.#health.hp;
     }
 
     get maxHp() {
-        return this.health.getMaxHp();
+        return this.#health.maxHp;
     }
 
     updateFacing(vx, vy) {

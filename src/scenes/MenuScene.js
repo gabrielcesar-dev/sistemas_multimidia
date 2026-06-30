@@ -7,10 +7,13 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor('#131313');
+        this.scene.launch('MenuDemoScene');
+        this.scene.bringToTop();
+
         this.scale.on('resize', this.handleResize, this);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
             this.scale.off('resize', this.handleResize, this);
+            this.scene.stop('MenuDemoScene');
         });
 
         this.buildMenu();
@@ -18,74 +21,31 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     buildMenu() {
-        const title = this.add.text(0, 0, 'SISTEMAS MULTIMIDIA', {
-            fontFamily: 'Georgia',
-            fontSize: '34px',
-            color: '#f2e7c9',
-            stroke: '#000000',
-            strokeThickness: 5
-        }).setOrigin(0.5);
-
-        const subtitle = this.add.text(0, 0, 'Tela de Inicio', {
-            fontFamily: 'Georgia',
-            fontSize: '16px',
-            color: '#d6c6a5'
-        }).setOrigin(0.5);
-
-        const panel = this.add.rectangle(0, 0, 340, 300, 0x201910, 0.82)
-            .setStrokeStyle(3, 0xc2a36a, 1);
-
-        const statusText = this.add.text(0, 0, 'Escolha uma opcao', {
-            fontFamily: 'Georgia',
-            fontSize: '14px',
-            color: '#f2e7c9',
-            align: 'center'
-        }).setOrigin(0.5);
-
         const buttons = [
             this.createMenuButton(KEYS.UI_MENU_PLAY, KEYS.UI_MENU_PLAY_PRESSED, 'Jogar', () => {
-                this.scene.start(SCENES.CHARACTER_SELECT);
-            }),
-            this.createMenuButton(KEYS.UI_MENU_LOAD, KEYS.UI_MENU_LOAD_PRESSED, 'Load', () => {
-                statusText.setText('Load ainda nao foi implementado');
-            }),
-            this.createMenuButton(KEYS.UI_MENU_SETTINGS, KEYS.UI_MENU_SETTINGS_PRESSED, 'Settings', () => {
-                statusText.setText('Settings ainda nao foi implementado');
-            }),
-            this.createMenuButton(KEYS.UI_MENU_QUIT, KEYS.UI_MENU_QUIT_PRESSED, 'Sair', () => {
-                statusText.setText('Feche a aba/janela para sair');
+                this.scene.stop('MenuDemoScene');
+                this.scene.start(SCENES.LEVEL1);
             })
         ];
 
-        const cursor = this.add.image(0, 0, KEYS.UI_MENU_CURSOR)
-            .setOrigin(0.5)
-            .setScale(3)
-            .setVisible(false);
-
-        buttons.forEach((button) => {
-            button.sprite.on('pointerover', () => {
-                cursor.setVisible(true);
-                cursor.setPosition(button.sprite.x - (button.sprite.displayWidth / 2) - 18, button.sprite.y);
-            });
-            button.sprite.on('pointerout', () => {
-                cursor.setVisible(false);
-            });
-        });
-
-        this.menuWidgets = [title, subtitle, panel, statusText, cursor, ...buttons.map((button) => button.sprite)];
-        this.titleText = title;
-        this.subtitleText = subtitle;
-        this.panel = panel;
-        this.statusText = statusText;
-        this.cursor = cursor;
+        this.menuWidgets = [...buttons.map((button) => button.sprite)];
         this.buttons = buttons;
+
+        this.copyrightText = this.add.text(0, 0, '© Todos os direitos reservados.\nGabriel Cesar, Igor Moura, Ciro Moraes', {
+            fontFamily: 'Courier, monospace',
+            fontSize: '16px',
+            color: '#ffffff',
+            align: 'center',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5, 1).setAlpha(0.8);
     }
 
     createMenuButton(defaultKey, pressedKey, label, onClick) {
         const sprite = this.add.image(0, 0, defaultKey)
             .setOrigin(0.5)
             .setScale(4)
-            .setInteractive({ useHandCursor: true });
+            .setInteractive({ useHandCursor: false });
 
         sprite.on('pointerdown', () => {
             sprite.setTexture(pressedKey);
@@ -100,10 +60,6 @@ export default class MenuScene extends Phaser.Scene {
             sprite.setTexture(defaultKey);
         });
 
-        sprite.on('pointerover', () => {
-            this.statusText.setText(label);
-        });
-
         return { sprite, defaultKey, pressedKey, label };
     }
 
@@ -113,18 +69,12 @@ export default class MenuScene extends Phaser.Scene {
         const centerX = width / 2;
         const centerY = height / 2;
 
-        this.titleText.setPosition(centerX, centerY - 170);
-        this.subtitleText.setPosition(centerX, centerY - 135);
-        this.panel.setPosition(centerX, centerY - 5);
-        this.statusText.setPosition(centerX, centerY + 145);
-
-        const startY = centerY - 70;
-        const gap = 62;
-
         this.buttons.forEach((button, index) => {
-            button.sprite.setPosition(centerX, startY + (index * gap));
+            button.sprite.setPosition(centerX, centerY + (index * 62));
         });
 
-        this.cursor.setVisible(false);
+        if (this.copyrightText) {
+            this.copyrightText.setPosition(centerX, height - 20);
+        }
     }
 }

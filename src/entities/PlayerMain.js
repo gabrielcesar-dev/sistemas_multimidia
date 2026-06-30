@@ -1,5 +1,6 @@
 import { KEYS } from '../config/constants.js';
 import PlayerBase from './PlayerBase.js';
+import { WEAPON_CONFIG } from '../config/WeaponConfig.js';
 
 export default class PlayerMain extends PlayerBase {
     constructor(scene, x, y) {
@@ -15,6 +16,9 @@ export default class PlayerMain extends PlayerBase {
         this.ammo = 0;
         this.canShoot = true;
         this.shotgunOverlay = null;
+
+        // Aim angle tracks the real direction for diagonal attacks
+        this.aimAngle = Math.PI / 2; // Default: down
 
         // Ensure correct animation playback
         this.play(this.getAnimationKey('idle'));
@@ -41,11 +45,16 @@ export default class PlayerMain extends PlayerBase {
             return 'anim_player_main_death_side';
         }
 
-        // Always use base player animations - weapons don't change sprite
         return `anim_player_main_${state}_${this.facing}`;
     }
 
     updateFacing(vx, vy) {
+        // Store real aim angle for diagonal attacks
+        if (vx !== 0 || vy !== 0) {
+            this.aimAngle = Math.atan2(vy, vx);
+        }
+
+        // Sprite animation stays cardinal (4 directions)
         if (vx < 0) {
             this.facing = 'side_left';
             return;
@@ -67,15 +76,20 @@ export default class PlayerMain extends PlayerBase {
     }
 
     tryStartAction(actionKeys) {
-        if (this.currentAction) return;
+        if (this.currentAction && this.currentAction !== 'shoot') return;
 
-        // SPACE key: Punch or Shoot (if has shotgun)
-        if (Phaser.Input.Keyboard.JustDown(actionKeys.punch)) {
-            if (this.weapon === 'shotgun' && this.ammo > 0 && this.canShoot) {
+        const isPunchJustDown = Phaser.Input.Keyboard.JustDown(actionKeys.punch);
+        const isPunchDown = actionKeys.punch.isDown;
+
+        if (this.weapon && this.ammo > 0 && this.canShoot) {
+            const config = WEAPON_CONFIG[this.weapon];
+            const isAutoWeapon = config && config.isAutomatic;
+
+            if (isPunchJustDown || (isAutoWeapon && isPunchDown)) {
                 this.shoot();
                 return;
             }
-            
+        } else if (isPunchJustDown && !this.weapon) {
             // Normal punch
             this.currentAction = 'punch';
             this.pendingPunchHit = true;
@@ -92,122 +106,140 @@ export default class PlayerMain extends PlayerBase {
     }
 
     shoot() {
-        this.ammo--;
         this.currentAction = 'shoot';
         this.canShoot = false;
         this.setVelocity(0, 0);
-        
-        // Fire 5 bullets in semi-radius pattern
-        const bullets = this.generateShotgunSpread();
-        
-        // Notify the scene to handle damage and bullet effects
-        this.scene.events.emit('shotgunFired', bullets, this.facing);
-        
-        // Simple animation pause then resume
-        this.scene.time.delayedCall(200, () => {
-            this.currentAction = null;
+
+        const config = WEAPON_CONFIG[this.weapon] || {};
+        const burstCount = config.burstCount || 1;
+        const burstDelay = config.burstDelay || 0;
+        const cooldown = config.cooldown || 600;
+
+        let shotsFired = 0;
+
+        const fireSingleShot = () => {
+            if (this.isDead || this.ammo <= 0) return;
+
+            this.ammo--;
+            this.scene.events.emit('ammoChanged', this.ammo);
             this.play(this.getAnimationKey('idle'), true);
-        });
-        
-        // Cooldown between shots
-        this.scene.time.delayedCall(600, () => {
-            this.canShoot = true;
-        });
+
+            const bullets = this.generateWeaponSpread();
+            this.scene.events.emit('weaponFired', this.x, this.y, bullets, this.facing, this.weapon);
+            
+            shotsFired++;
+            
+            if (shotsFired < burstCount && this.ammo > 0) {
+                this.scene.time.delayedCall(burstDelay, fireSingleShot);
+            } else {
+                // finished burst
+                this.scene.time.delayedCall(200, () => {
+                    if (this.isDead) return;
+                    this.currentAction = null;
+                    this.play(this.getAnimationKey('idle'), true);
+                });
+                
+                this.scene.time.delayedCall(cooldown, () => {
+                    if (this.isDead) return;
+                    this.canShoot = true;
+                    if (this.ammo <= 0) {
+                        this.weapon = null;
+                        this.removeWeaponSprite();
+                        this.scene.events.emit('ammoChanged', 0);
+                    }
+                });
+            }
+        };
+
+        fireSingleShot();
     }
 
-    generateShotgunSpread() {
-        // Center direction based on facing
-        let centerAngle;
-        const directions = {
-            up: -Math.PI / 2,
-            down: Math.PI / 2,
-            side: 0,
-            side_left: Math.PI
-        };
-        centerAngle = directions[this.facing] || directions.down;
+    generateWeaponSpread() {
+        // Use the real aim angle (supports diagonals)
+        const centerAngle = this.aimAngle;
 
-        // Generate 5 bullets in semi-circle spread (90 degree arc)
-        const spreadAngle = Math.PI / 2; // 90 degrees
+        const bulletDistance = 25; 
         const bullets = [];
-        const bulletDistance = 80;
-        const spread = spreadAngle / 4; // Divide 90 degrees into 4 gaps for 5 bullets
 
-        for (let i = 0; i < 5; i++) {
-            const angle = centerAngle - (spreadAngle / 2) + (i * spread);
+        const config = WEAPON_CONFIG[this.weapon] || WEAPON_CONFIG.pistol;
+        const pelletCount = config.pelletCount;
+        const spreadAngle = config.spreadAngle;
+        
+        for (let i = 0; i < pelletCount; i++) {
+            let angle = centerAngle;
+            
+            if (spreadAngle > 0 && pelletCount > 1) {
+                // Bell curve distribution: (rand + rand + rand)/3 - 0.5 creates a strong center bias
+                const bellCurveRand = (Math.random() + Math.random() + Math.random()) / 3 - 0.5;
+                angle += bellCurveRand * spreadAngle;
+            }
+
+            const distOffset = bulletDistance + Phaser.Math.FloatBetween(-5, 5);
             bullets.push({
-                x: this.x + Math.cos(angle) * bulletDistance,
-                y: this.y + Math.sin(angle) * bulletDistance,
+                x: this.x + Math.cos(angle) * distOffset,
+                y: this.y + Math.sin(angle) * distOffset,
                 angle: angle,
-                distance: bulletDistance * 1.5
+                distance: bulletDistance * 1.5, // Just for visual start
+                config: config
             });
         }
 
         return bullets;
     }
 
-    updateShotgunOverlay() {
-        if (!this.shotgunOverlay) return;
-
-        // Position overlay at player position with slight offset
-        const offsetX = this.facing === 'side' ? 8 : (this.facing === 'side_left' ? -8 : 0);
-        const offsetY = this.facing === 'down' ? 8 : (this.facing === 'up' ? -8 : 0);
-
-        this.shotgunOverlay.x = this.x + offsetX;
-        this.shotgunOverlay.y = this.y + offsetY;
-        this.shotgunOverlay.setDepth(this.depth + 1);
+    equipWeapon(weaponId, ammo) {
+        this.weapon = weaponId;
+        this.ammo = ammo;
+        this.createWeaponSprite();
         
-        // Redraw if facing changed
-        if (this.shotgunOverlay.lastFacing !== this.facing) {
-            this.drawShotgunOnOverlay();
-            this.shotgunOverlay.lastFacing = this.facing;
+        this.scene.events.emit('weaponPickedUp', weaponId);
+        this.scene.events.emit('ammoChanged', this.ammo);
+    }
+
+    updateWeaponSprite() {
+        if (!this.weaponSprite) return;
+
+        let ox = 0; let oy = 0;
+        if (this.facing === 'down') { ox = -10; oy = 4; }
+        else if (this.facing === 'up') { ox = 10; oy = 4; }
+        else if (this.facing === 'side') { ox = 8; oy = 6; }
+        else if (this.facing === 'side_left') { ox = -8; oy = 6; }
+
+        this.weaponSprite.setPosition(this.x + ox, this.y + oy);
+        this.weaponSprite.setDepth(this.depth + 1);
+        this.weaponSprite.setVisible(this.weapon !== null && !this.isDead);
+
+        if (this.weapon) {
+            let state = 'idle';
+            if (this.currentAction === 'shoot') {
+                state = 'shoot';
+            } else if (this.anims.currentAnim && this.anims.currentAnim.key.includes('run')) {
+                state = 'run';
+            }
+            let animWeapon = this.weapon || 'shotgun';
+            const animKey = `anim_player_main_${animWeapon}_${state}_${this.facing}`;
+            this.weaponSprite.play(animKey, true);
         }
     }
 
-    createShotgunOverlay() {
-        if (this.shotgunOverlay) return;
-        
-        // Create overlay graphics
-        this.shotgunOverlay = this.scene.add.graphics();
-        this.shotgunOverlay.lastFacing = null;
-        this.drawShotgunOnOverlay();
-        this.updateShotgunOverlay();
+    createWeaponSprite() {
+        if (this.weaponSprite) return;
+        this.weaponSprite = this.scene.add.sprite(this.x, this.y, KEYS.PLAYER_MAIN_SHOTGUN_IDLE_DOWN);
+        this.weaponSprite.setScale(this.scaleX, this.scaleY);
+        this.weaponSprite.setDepth(this.depth + 1);
+        this.updateWeaponSprite();
     }
 
-    drawShotgunOnOverlay() {
-        if (!this.shotgunOverlay) return;
-
-        this.shotgunOverlay.clear();
-        
-        // Draw shotgun oriented based on facing direction
-        if (this.facing === 'side' || this.facing === 'side_left') {
-            // Horizontal orientation
-            const flipAmount = this.facing === 'side_left' ? -1 : 1;
-            this.shotgunOverlay.fillStyle(0x4a4a4a, 0.8);
-            this.shotgunOverlay.fillRect(-6 * flipAmount, -2, 12, 4); // Barrel
-            this.shotgunOverlay.fillStyle(0x8b7355, 0.8);
-            this.shotgunOverlay.fillRect(-8 * flipAmount, -1, 4, 2); // Stock
-            this.shotgunOverlay.fillStyle(0x3a3a3a, 1);
-            this.shotgunOverlay.fillCircle(2 * flipAmount, 0, 1); // Sight
-        } else {
-            // Vertical orientation
-            const flipAmount = this.facing === 'up' ? -1 : 1;
-            this.shotgunOverlay.fillStyle(0x4a4a4a, 0.8);
-            this.shotgunOverlay.fillRect(-2, -6 * flipAmount, 4, 12); // Barrel
-            this.shotgunOverlay.fillStyle(0x8b7355, 0.8);
-            this.shotgunOverlay.fillRect(-1, -8 * flipAmount, 2, 4); // Stock
-            this.shotgunOverlay.fillStyle(0x3a3a3a, 1);
-            this.shotgunOverlay.fillCircle(0, 2 * flipAmount, 1); // Sight
-        }
-    }
-
-    removeShotgunOverlay() {
-        if (this.shotgunOverlay) {
-            this.shotgunOverlay.destroy();
-            this.shotgunOverlay = null;
+    removeWeaponSprite() {
+        if (this.weaponSprite) {
+            this.weaponSprite.destroy();
+            this.weaponSprite = null;
         }
     }
 
     update(cursors, cursorsWASD, actionKeys) {
+        if (this.isDead) return;
+
         const speed = 160;
         let vx = 0;
         let vy = 0;
@@ -231,23 +263,25 @@ export default class PlayerMain extends PlayerBase {
         }
 
         this.updateFacing(vx, vy);
-        this.updateShotgunOverlay();
         this.tryStartAction(actionKeys);
 
         if (this.currentAction) {
             this.setVelocity(0, 0);
-            this.setDepth(this.y + this.displayHeight / 2);
+            super.update();
+            this.updateWeaponSprite();
             return;
         }
 
         this.setVelocity(vx * speed, vy * speed);
-        this.setDepth(this.y + this.displayHeight / 2);
+        super.update();
 
         if (vx !== 0 || vy !== 0) {
             this.play(this.getAnimationKey('run'), true);
         } else {
             this.play(this.getAnimationKey('idle'), true);
         }
+
+        this.updateWeaponSprite();
     }
 
     consumePunchHit() {
@@ -260,37 +294,28 @@ export default class PlayerMain extends PlayerBase {
     }
 
     getMeleeAttackArea() {
-        const ranges = {
-            up: { x: 0, y: -34 },
-            down: { x: 0, y: 34 },
-            side: { x: 34, y: 0 },
-            side_left: { x: -34, y: 0 }
-        };
-        const offset = ranges[this.facing] || ranges.down;
-
+        // Use real aim angle for diagonal punching
+        const dist = 34;
         return {
-            x: this.x + offset.x,
-            y: this.y + offset.y,
+            x: this.x + Math.cos(this.aimAngle) * dist,
+            y: this.y + Math.sin(this.aimAngle) * dist,
             radius: 34
         };
-    }
-
-    takeDamage(amount) {
-        const remaining = this.damage(amount);
-        return remaining > 0;
     }
 
     handleDeath() {
         // Block further actions
         this.currentAction = 'dead';
         this.setVelocity(0, 0);
-        this.removeShotgunOverlay();
+        this.removeWeaponSprite();
+        
+        this.stop(); // Para animações atuais
 
         // Play mapped death animation
         const deathAnim = this.getAnimationKey('death');
         if (deathAnim) this.play(deathAnim, true);
 
-        // Restart after animation (1000ms fallback)
-        this.scene.time.delayedCall(1000, () => this.scene.scene.restart());
+        // Informa a cena que ocorreu Game Over
+        this.scene.events.emit('playerDied');
     }
 }

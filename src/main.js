@@ -1,9 +1,9 @@
 import BootScene from './scenes/BootScene.js';
-import CharacterSelectScene from './scenes/CharacterSelectScene.js';
 import LevelSelectScene from './scenes/LevelSelectScene.js';
 import MenuScene from './scenes/MenuScene.js';
-import Level1 from './scenes/Level1.js';
-import Level2 from './scenes/Level2.js';
+import MenuDemoScene from './scenes/MenuDemoScene.js';
+import { Level1, Level2 } from './scenes/PlayScene.js';
+import HudScene from './scenes/HudScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -19,7 +19,7 @@ const config = {
             debug: false,
         }
     },
-    scene: [BootScene, MenuScene, CharacterSelectScene, LevelSelectScene, Level1, Level2]
+    scene: [BootScene, MenuDemoScene, MenuScene, LevelSelectScene, Level1, Level2, HudScene]
 };
 
 const game = new Phaser.Game(config);

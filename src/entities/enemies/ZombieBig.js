@@ -8,7 +8,7 @@ export default class ZombieBig extends BaseEnemy {
         this.setScale(2.5);
         this.speed = 20;
         this.cost = 7;
-        this.hp = 5;
+        this.setupHealth(5);
     }
 
     getDeathAnimationKey() {

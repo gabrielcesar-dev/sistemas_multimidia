@@ -31,16 +31,12 @@ export default class LevelSelectScene extends Phaser.Scene {
             color: '#d7c4a0'
         }).setOrigin(0.5);
 
-        this.level1Card = this.createLevelCard('Level 1', 'Ambiente natural', 0x2d4e2f, () => {
+        this.level1Card = this.createLevelCard('Começar Jogo', 'Ambiente natural e progressivo', 0x2d4e2f, () => {
             this.scene.start(SCENES.LEVEL1);
         });
 
-        this.level2Card = this.createLevelCard('Level 2', 'Ambiente sombrio', 0x4a3124, () => {
-            this.scene.start(SCENES.LEVEL2);
-        });
-
         this.backButton = this.createActionButton('Voltar', () => {
-            this.scene.start(SCENES.CHARACTER_SELECT);
+            this.scene.start(SCENES.MENU);
         });
     }
 
@@ -103,8 +99,7 @@ export default class LevelSelectScene extends Phaser.Scene {
 
         this.titleText.setPosition(centerX, centerY - 210);
         this.subtitleText.setPosition(centerX, centerY - 175);
-        this.level1Card.container.setPosition(centerX - 170, centerY - 8);
-        this.level2Card.container.setPosition(centerX + 170, centerY - 8);
+        this.level1Card.container.setPosition(centerX, centerY - 8);
         this.backButton.bg.setPosition(centerX, centerY + 190);
         this.backButton.text.setPosition(centerX, centerY + 190);
     }
